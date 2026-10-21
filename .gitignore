@@ -12,9 +12,10 @@ next-env.d.ts
 build/
 dist/
 
-# Variables de entorno (nunca se versionan)
+# Variables de entorno (nunca se versionan, salvo el ejemplo)
 .env
-.env*.local
+.env.*
+!.env.example
 
 # Vercel
 .vercel
