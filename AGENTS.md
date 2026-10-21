@@ -122,15 +122,21 @@ de C · módulos 5-8 · evaluación final · administrador con interfaz. El deta
 **No están en el repositorio, ni en el archivo de credenciales, ni en el `.env.local` versionado.**
 Las sensibles viven en el **keyring del sistema** (gnome-keyring):
 
+Las credenciales de **todos** los proyectos viven en el mismo sitio, con el helper `cred`:
+
 ```bash
-secret-tool lookup service codestart-fiec key supabase-token   # PAT, solo para crear el proyecto
-secret-tool lookup service codestart-fiec key db-password      # contraseña de Postgres
-secret-tool lookup service codestart-fiec key service-role     # clave service_role
+cred get codestart-fiec db-password       # contraseña de Postgres
+cred get codestart-fiec service-role      # clave service_role
+cred get codestart-fiec supabase-token    # PAT, solo para crear el proyecto
+cred list                                  # qué hay guardado, sin los valores
 ```
 
-`~/.config/codestart-fiec/credenciales.env` solo contiene datos **públicos** (URL del proyecto,
-project ref, anon key y connection string). `.env.local` se genera a partir del keyring y está en
-el `.gitignore` con permisos `600`.
+Por debajo usa el keyring del sistema con el esquema `service credenciales / proyecto <p> / clave <c>`,
+así que añadir otro proyecto es `cred set <proyecto> <clave>` y nada más.
+
+Lo no sensible (URL del proyecto, project ref, `anon` key, connection string) queda en
+`~/.config/credenciales/<proyecto>.env`. `.env.local` se genera desde el keyring y está en el
+`.gitignore` con permisos `600`.
 
 ### La base de datos solo es accesible por el pooler
 
