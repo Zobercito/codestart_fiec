@@ -116,3 +116,35 @@ de C · módulos 5-8 · evaluación final · administrador con interfaz. El deta
   grep + lectura. Reindexa si notas el índice atrasado.
 - Este repositorio está anidado dentro del repo del mockup, que lo ignora. `plan.md` y
   `.codegraph/` no se versionan.
+
+### Credenciales
+
+**No están en el repositorio, ni en el archivo de credenciales, ni en el `.env.local` versionado.**
+Las sensibles viven en el **keyring del sistema** (gnome-keyring):
+
+```bash
+secret-tool lookup service codestart-fiec key supabase-token   # PAT, solo para crear el proyecto
+secret-tool lookup service codestart-fiec key db-password      # contraseña de Postgres
+secret-tool lookup service codestart-fiec key service-role     # clave service_role
+```
+
+`~/.config/codestart-fiec/credenciales.env` solo contiene datos **públicos** (URL del proyecto,
+project ref, anon key y connection string). `.env.local` se genera a partir del keyring y está en
+el `.gitignore` con permisos `600`.
+
+### La base de datos solo es accesible por el pooler
+
+El host directo `db.<ref>.supabase.co` **solo resuelve a IPv6**, y esta máquina no tiene ruta
+IPv6: cualquier conexión directa falla con «la red es inaccesible». Usa siempre el pooler:
+
+```
+host=aws-1-us-west-2.pooler.supabase.com  port=5432
+user=postgres.<project-ref>  dbname=postgres  sslmode=require
+```
+
+Ojo: el host del pooler es **`aws-1-us-west-2`**, no `aws-0`. Y el usuario lleva el ref pegado.
+La CLI lo escribe bien en `supabase/.temp/pooler-url` tras hacer `supabase link`.
+
+Además, todo el flujo funciona **sin el PAT**: las migraciones se aplican con `psql` y los tipos
+se generan con `supabase gen types typescript --db-url "<connection string>"`. El PAT solo hizo
+falta para crear el proyecto, y se puede revocar.
