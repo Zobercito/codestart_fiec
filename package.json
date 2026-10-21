@@ -11,7 +11,10 @@
     "db:migrate": "supabase db push --linked",
     "db:seed": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/seed.sql",
     "db:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/types.generados.ts",
-    "db:usuarios": "node --env-file=.env.local scripts/crear-usuarios.mjs"
+    "db:usuarios": "node --env-file=.env.local scripts/crear-usuarios.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typegen": "next typegen"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -25,14 +28,15 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.4"
   },
   "description": "CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC (Avance 3, version alfa)"
 }

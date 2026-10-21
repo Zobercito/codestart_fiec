@@ -89,6 +89,37 @@ Una lección puede incrustar estos componentes:
 cat src/content/lecciones/m03-l1-que-pasa-al-ejecutar.mdx
 ```
 
+## El motor de validacion
+
+Los retos de codigo se validan **analizando** el codigo del estudiante, no ejecutandolo: C no se
+puede ejecutar en el navegador, y ademas el analisis dice **por que** falla, no solo que falla.
+
+```
+src/lib/validacion/
+├── lexico.ts     → el codigo a tokens
+├── sintactico.ts → tokens a AST (parser descendente recursivo)
+├── entorno.ts    → tabla de simbolos con tipos y evaluacion de expresiones
+├── motor.ts      → reglas del reto, simulacion de camino y diagnostico
+├── worker.ts     → el Web Worker donde corre
+└── cliente.ts    → el wrapper que usa la interfaz
+```
+
+El subconjunto de C es el del propedeutico: variables y tipos, condicionales, retorno y llamadas
+de salida. Las reglas de cada reto estan en la base de datos (JSONB) y describen **lo que el
+programa tiene que hacer**, no como lo tiene que escribir. Asi el motor no depende del lenguaje.
+
+Ejemplo del diagnostico que ve el estudiante:
+
+```
+La comparación con «edad» usa el operador «>», y el reto pide «>=».
+Con 18, tu condición `edad > 18` es falsa, y respondió «Menor de edad».
+El caso espera «Mayor de edad».
+```
+
+```bash
+npm test        # 13 pruebas del motor
+```
+
 ## Estructura
 
 ```

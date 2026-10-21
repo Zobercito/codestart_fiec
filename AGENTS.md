@@ -111,6 +111,25 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
   el tramado se come el gradiente. Por eso la retícula va en un `div` hijo con
   `position: absolute`, y el gradiente en el padre.
 
+### El motor de validacion: analiza, no ejecuta
+
+C no se puede ejecutar en el navegador, y el analisis estatico da un diagnostico mejor que la
+ejecucion: sabe por que se toma cada rama, no solo que el resultado no cuadra.
+
+- `src/lib/validacion/lexico.ts` -> `sintactico.ts` (parser descendente recursivo) -> `entorno.ts`
+  (tabla de simbolos con tipos) -> `motor.ts` (reglas, simulacion de camino y diagnostico).
+- El programa que se analiza es el **cuerpo de una funcion** (normalmente `main`): lo que el
+  estudiante escribe dentro de las llaves es lo que el reto pide completar.
+- Las reglas del reto viven en la base de datos (JSONB) y describen lo que el programa TIENE QUE
+  hacer, no como lo tiene que escribir. El motor no depende del lenguaje.
+- El `Web Worker` es una envoltura fina: el motor es una funcion pura y se puede probar en Node
+  con Vitest, sin workers.
+- **El valor del caso de prueba manda sobre el valor inicial de la declaracion.** Un caso dice
+  "que pasa si edad = 15", asi que el `int edad = 18;` del enunciado no cambia el resultado. Sin
+  esta regla, el motor daba el mismo resultado para los tres casos.
+- Un error del PROGRAMA (tipo, variable sin declarar) va a la lista global; un caso que no
+  cuadra es un fallo de ese caso, no del programa.
+
 ### El motor de contenidos, y sus tres trampas
 
 El contenido de las lecciones es MDX versionado en `src/content/`, y la base de datos guarda
