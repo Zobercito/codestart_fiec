@@ -77,7 +77,9 @@ insert into public.modulos (titulo, orden, descripcion, archivo_contenido) value
    'Cuestionario automatizado de los 8 módulos.',
    'contenido/modulos/08-evaluacion-final.mdx');
 
--- ── Lecciones del modulo 3 (el primero con contenido interactivo) ──
+-- ── Lecciones ───────────────────────────────────────────────────
+-- El modulo 3 tiene dos, porque es el primero con contenido interactivo
+-- completo (visor de anatomia y simulador de memoria).
 insert into public.lecciones (modulo_id, titulo, orden, archivo_contenido, duracion_min)
 select m.id, v.titulo, v.orden, v.archivo, v.duracion
 from public.modulos m
@@ -88,6 +90,17 @@ join (values
    'contenido/lecciones/m03-l2-anatomia-de-un-programa.mdx', 30)
 ) as v(titulo, orden, archivo, duracion) on true
 where m.orden = 3;
+
+-- Los modulos 1, 2 y 4 tienen una leccion cada uno, para que el
+-- progreso del curso se vea escalonado como en el mockup.
+insert into public.lecciones (modulo_id, titulo, orden, archivo_contenido, duracion_min)
+select m.id, v.titulo, 1, v.archivo, v.duracion
+from public.modulos m
+join (values
+  ('Introducción a la informática y al computador', 'contenido/lecciones/m01-introduccion.mdx', 20),
+  ('Algoritmos', 'contenido/lecciones/m02-algoritmos.mdx', 25),
+  ('Variables, tipos de datos y operadores', 'contenido/lecciones/m04-variables.mdx', 30)
+) as v(titulo, archivo, duracion) on m.titulo = v.titulo;
 
 -- ── Retos ──────────────────────────────────────────────────────
 -- El primero es el de codigo del prototipo. Sus reglas y sus casos son
@@ -175,12 +188,14 @@ where p.correo in (
   'camila.rios@up.ac.pa', 'andres.perez@up.ac.pa'
 ) and m.orden <= 3;
 
+-- El modulo 4 en curso: una leccion a medias.
 insert into public.progresos (usuario_id, leccion_id, estado, fecha)
 select p.id, l.id, 'en_progreso', timestamptz '2026-07-16 18:30:00+00'
 from public.perfiles p
 cross join public.lecciones l
 join public.modulos m on m.id = l.modulo_id
 where p.correo = 'julieth.rojas@up.ac.pa' and m.orden = 4;
+
 
 -- ── Intentos: el origen del analisis de errores (RF15) ──────────
 -- Julieth falló el condicional por usar > en vez de >=: es el patron

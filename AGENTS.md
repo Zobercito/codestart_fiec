@@ -73,6 +73,11 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
 - `next.config.ts` tiene `cacheComponents: true`, `partialPrefetching: true` y `reactCompiler: true`.
 - **Tailwind v4 no tiene `tailwind.config.js`.** Los tokens van en `@theme` dentro de
   `src/app/globals.css`. Si añades un token, va ahí.
+- **Con Cache Components, una ruta que lee cookies no se puede prerenderizar.** Si el build falla con
+  *"accessed outside of `<Suspense>` prevents the route from being prerendered"*, hay que declarar
+  `export const instant = false` en esa página o layout. Está en `src/app/(sesion)/layout.tsx`.
+  La portada `/` no lee la sesión a propósito, para poder quedarse estática: el proxy redirige
+  al panel si el visitante ya tiene sesión.
 - `next dev` re-genera el bloque `nextjs-agent-rules` de este archivo. No lo edites ni lo borres.
 - La documentación **de la versión instalada** está en `node_modules/next/dist/docs/`. Léela antes
   de escribir código; es más fiable que tu memoria.
@@ -102,6 +107,9 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
   controlada. Usa colores explícitos.
 - Es Tailwind v4, no v3: `bg-linear-to-*` (no `bg-gradient-to-*`) y `ring-3` (un `ring` a secas
   es 1 px).
+- **El tramado (`dotgrid`) y el gradiente compiten por `background-image`.** En v4 gana el último, y
+  el tramado se come el gradiente. Por eso la retícula va en un `div` hijo con
+  `position: absolute`, y el gradiente en el padre.
 - Todo lo que responde al cursor necesita equivalente por teclado y por toque
   (`hover:` + `focus-visible:` + clic): el dispositivo real del curso es la tableta.
 
