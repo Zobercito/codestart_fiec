@@ -46,6 +46,30 @@ Copia `.env.example` a `.env.local` y rellénalo. Ninguna se versiona.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anónima, la que usa el navegador |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Solo servidor.** Para migraciones y el seed. Nunca `NEXT_PUBLIC_` |
 
+## Base de datos
+
+El proyecto de Supabase ya está creado y vinculado. El esquema son 10 tablas con RLS por rol.
+
+```bash
+npm run db:migrate    # aplica las migraciones (supabase/migrations/)
+npm run db:usuarios  # crea los 6 usuarios de prueba y sus perfiles
+npm run db:seed      # carga los datos de prueba (grupo, 8 modulos, retos, intentos)
+npm run db:types     # regenera src/lib/supabase/types.generados.ts
+```
+
+**Usuarios de prueba** (contraseña `Codestart2026!`):
+
+| Correo | Rol |
+|---|---|
+| `docente@up.ac.pa` | docente |
+| `julieth.rojas@up.ac.pa` | estudiante |
+| `luis.martinez@up.ac.pa` | estudiante |
+| `camila.rios@up.ac.pa` | estudiante |
+| `andres.perez@up.ac.pa` | estudiante |
+| `sofia.bernal@up.ac.pa` | estudiante |
+
+El grupo es `Sección 1 · Verano 2026` con el código de inscripción `FIEC-V26-8QK4`.
+
 ## Estructura
 
 ```
