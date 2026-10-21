@@ -54,28 +54,28 @@ where g.codigo_inscripcion = 'FIEC-V26-8QK4'
 insert into public.modulos (titulo, orden, descripcion, archivo_contenido) values
   ('Introducción a la informática y al computador', 1,
    'Hardware, software, instrucciones y memoria; pensamiento computacional.',
-   'contenido/modulos/01-introduccion-a-la-informatica.mdx'),
+   'modulos/01-introduccion-a-la-informatica.mdx'),
   ('Algoritmos', 2,
    'Descomponer un problema en pasos; pseudocódigo y diagramas de flujo.',
-   'contenido/modulos/02-algoritmos.mdx'),
+   'modulos/02-algoritmos.mdx'),
   ('De la idea al programa', 3,
    'Qué es programar, compilación frente a interpretación y anatomía de un «Hola Mundo».',
-   'contenido/modulos/03-de-la-idea-al-programa.mdx'),
+   'modulos/03-de-la-idea-al-programa.mdx'),
   ('Variables, tipos de datos y operadores', 4,
    'Enteros, decimales, caracteres, booleanos y asignación de memoria.',
-   'contenido/modulos/04-variables-y-tipos-de-datos.mdx'),
+   'modulos/04-variables-y-tipos-de-datos.mdx'),
   ('Estructuras de control de flujo', 5,
    'Condicionales y ciclos: predecir la salida y ordenar bloques de código.',
-   'contenido/modulos/05-estructuras-de-control-de-flujo.mdx'),
+   'modulos/05-estructuras-de-control-de-flujo.mdx'),
   ('Introducción a estructuras de datos básicas', 6,
    'Arreglos, listas e indexación: visualizar posiciones e índices en memoria.',
-   'contenido/modulos/06-estructuras-de-datos.mdx'),
+   'modulos/06-estructuras-de-datos.mdx'),
   ('Taller de retos y ejercicios de integración', 7,
    'Retos que combinan variables, control de flujo y arreglos.',
-   'contenido/modulos/07-taller-de-retos.mdx'),
+   'modulos/07-taller-de-retos.mdx'),
   ('Evaluación formativa final', 8,
    'Cuestionario automatizado de los 8 módulos.',
-   'contenido/modulos/08-evaluacion-final.mdx');
+   'modulos/08-evaluacion-final.mdx');
 
 -- ── Lecciones ───────────────────────────────────────────────────
 -- El modulo 3 tiene dos, porque es el primero con contenido interactivo
@@ -85,9 +85,9 @@ select m.id, v.titulo, v.orden, v.archivo, v.duracion
 from public.modulos m
 join (values
   ('¿Qué pasa cuando ejecutamos un programa?', 1,
-   'contenido/lecciones/m03-l1-que-pasa-al-ejecutar.mdx', 25),
+   'lecciones/m03-l1-que-pasa-al-ejecutar.mdx', 25),
   ('Anatomía de un programa: cada línea y su porqué', 2,
-   'contenido/lecciones/m03-l2-anatomia-de-un-programa.mdx', 30)
+   'lecciones/m03-l2-anatomia-de-un-programa.mdx', 30)
 ) as v(titulo, orden, archivo, duracion) on true
 where m.orden = 3;
 
@@ -97,9 +97,9 @@ insert into public.lecciones (modulo_id, titulo, orden, archivo_contenido, durac
 select m.id, v.titulo, 1, v.archivo, v.duracion
 from public.modulos m
 join (values
-  ('Introducción a la informática y al computador', 'contenido/lecciones/m01-introduccion.mdx', 20),
-  ('Algoritmos', 'contenido/lecciones/m02-algoritmos.mdx', 25),
-  ('Variables, tipos de datos y operadores', 'contenido/lecciones/m04-variables.mdx', 30)
+  ('Introducción a la informática y al computador', 'lecciones/m01-introduccion.mdx', 20),
+  ('Algoritmos', 'lecciones/m02-algoritmos.mdx', 25),
+  ('Variables, tipos de datos y operadores', 'lecciones/m04-variables.mdx', 30)
 ) as v(titulo, archivo, duracion) on m.titulo = v.titulo;
 
 -- ── Retos ──────────────────────────────────────────────────────

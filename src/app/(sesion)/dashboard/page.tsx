@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { IconoModulo } from "@/components/modulos/icono-modulo";
+import { formatearFecha } from "@/lib/fechas";
 import {
   calcularEstadosModulos,
   obtenerMiGrupo,
@@ -114,10 +115,7 @@ export default async function PaginaDashboard() {
                 <span>
                   📅 Entrega:{" "}
                   <strong className="font-semibold text-slate-700">
-                    {new Date(tarea.fecha_entrega).toLocaleDateString("es-PA", {
-                      day: "numeric",
-                      month: "long",
-                    })}
+                    {formatearFecha(tarea.fecha_entrega)}
                   </strong>
                 </span>
               </div>

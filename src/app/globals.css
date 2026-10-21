@@ -49,6 +49,119 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PROSA DE LAS LECCIONES
+   Los elementos que produce el MDX se estilan aqui, con :where() para
+   que cualquier clase del markdown tenga prioridad sobre esto.
+   ═══════════════════════════════════════════════════════════════ */
+@layer components {
+  .mdx :where(h1) {
+    margin-top: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-slate-900);
+  }
+
+  .mdx :where(h2) {
+    margin-top: 2rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--color-slate-900);
+  }
+
+  .mdx :where(h3) {
+    margin-top: 1.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-slate-900);
+  }
+
+  .mdx :where(p) {
+    margin-top: 0.875rem;
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--color-slate-700);
+  }
+
+  .mdx :where(strong) {
+    font-weight: 700;
+    color: var(--color-slate-900);
+  }
+
+  .mdx :where(em) {
+    font-style: italic;
+    color: var(--color-slate-700);
+  }
+
+  .mdx :where(ul, ol) {
+    margin-top: 0.875rem;
+    padding-left: 1.25rem;
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--color-slate-700);
+  }
+
+  .mdx :where(ul) {
+    list-style: disc;
+  }
+
+  .mdx :where(ol) {
+    list-style: decimal;
+  }
+
+  .mdx :where(li) {
+    margin-top: 0.375rem;
+  }
+
+  .mdx :where(blockquote) {
+    margin-top: 1.25rem;
+    border-left: 3px solid var(--color-fiec-300);
+    border-radius: 0 0.75rem 0.75rem 0;
+    background: var(--color-fiec-50);
+    padding: 0.875rem 1rem;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--color-fiec-900);
+  }
+
+  .mdx :where(blockquote p) {
+    margin-top: 0;
+    color: inherit;
+  }
+
+  .mdx :where(a) {
+    color: var(--color-fiec-700);
+    text-decoration: underline;
+    text-decoration-color: var(--color-fiec-300);
+    text-underline-offset: 4px;
+  }
+
+  .mdx :where(table) {
+    margin-top: 1.25rem;
+    width: 100%;
+    font-size: 0.875rem;
+  }
+
+  .mdx :where(th) {
+    border-bottom: 1px solid var(--color-slate-300);
+    padding-bottom: 0.5rem;
+    text-align: left;
+    font-size: 0.625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-slate-500);
+  }
+
+  .mdx :where(td) {
+    border-bottom: 1px solid var(--color-slate-200);
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    color: var(--color-slate-700);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BASE
    ═══════════════════════════════════════════════════════════════ */
 body {

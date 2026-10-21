@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { connection } from "next/server";
 import { cookies } from "next/headers";
 import type { Database } from "./types.generados";
 
@@ -12,6 +13,18 @@ import type { Database } from "./types.generados";
  * no se puede renovar la sesion, la peticion sigue igual.
  */
 export async function crearClienteSupabase() {
+  /*
+   * Con Cache Components (Next 16), toda lectura de Supabase es una
+   * lectura de la peticion: la sesion vive en una cookie y
+   * @supabase/ssr usa Date.now() por dentro. Sin esta llamada, Next
+   * intenta prerenderizar rutas que en realidad dependen de quien
+   * este conectada, y falla con "unstable value Date.now()".
+   *
+   * Va aqui, en un solo sitio, porque TODAS las consultas a Supabase
+   * de esta app dependen de la sesion.
+   */
+  await connection();
+
   const almacenDeCookies = await cookies();
 
   return createServerClient<Database>(

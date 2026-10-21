@@ -110,6 +110,28 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
 - **El tramado (`dotgrid`) y el gradiente compiten por `background-image`.** En v4 gana el último, y
   el tramado se come el gradiente. Por eso la retícula va en un `div` hijo con
   `position: absolute`, y el gradiente en el padre.
+
+### El motor de contenidos, y sus tres trampas
+
+El contenido de las lecciones es MDX versionado en `src/content/`, y la base de datos guarda
+la ruta del archivo (`lecciones/m03-l1-....mdx`). Tres cosas que costaron tiempo:
+
+1. **`next-mdx-remote` v6 compila con `blockJS: true`**, y ese plugin **borra los atributos con
+   expresión** de los componentes (`<Componente datos={[{...}]} />` llega sin props). Hay que
+   pasar `options={{ blockJS: false, blockDangerousJS: true }}`: se permiten las expresiones y
+   siguen bloqueados `eval`, `Function`, `require` y `process`. Es aceptable porque el
+   contenido lo escribe el equipo, no un visitante.
+2. **El contenido NO va con `"use cache"`.** La clave de esa caché es la ruta, así que al
+   editar un `.mdx` se seguía sirviendo la versión vieja (comprobado: el cambio no aparecía
+   hasta reiniciar el servidor). Se lee siempre del disco, que es lo rápido, y las rutas que
+   lo usan se renderizan en request-time con `export const instant = false`.
+3. **`@supabase/ssr` usa `Date.now()` por dentro**, y con Cache Components eso rompe el
+   prerenderizado ("unstable value Date.now()"). Se resuelve con `await connection()` en
+   `crearClienteSupabase()`, en un solo sitio: todas las consultas dependen de la sesión.
+
+Además, las fechas se formatean a mano (`src/lib/fechas.ts`): `toLocaleDateString` depende
+del locale y de la zona horaria del servidor, y `new Date()` dispara el detector de valores
+inestables de Next.
 - Todo lo que responde al cursor necesita equivalente por teclado y por toque
   (`hover:` + `focus-visible:` + clic): el dispositivo real del curso es la tableta.
 

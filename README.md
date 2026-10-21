@@ -70,6 +70,25 @@ npm run db:types     # regenera src/lib/supabase/types.generados.ts
 
 El grupo es `Sección 1 · Verano 2026` con el código de inscripción `FIEC-V26-8QK4`.
 
+## Contenido de las lecciones
+
+Las lecciones son archivos **MDX versionados en el repositorio** (`src/content/`), no filas de
+una tabla. La base de datos guarda la ruta del archivo, así que cambiar el contenido de una
+lección es un commit, con su revisión.
+
+Una lección puede incrustar estos componentes:
+
+| Componente | Qué hace |
+|---|---|
+| `<VisorAnatomia>` | Cada línea del programa se explica al pasar el cursor, al enfocarla o al tocarla |
+| `<SimuladorMemoria>` | La memoria como casilleros numerados, avanzando instrucción a instrucción |
+| `<RecorridoInstruccion>` | Las cuatro etapas: fuente, traducción, memoria y salida |
+
+```bash
+# Ver el contenido sin la base de datos
+cat src/content/lecciones/m03-l1-que-pasa-al-ejecutar.mdx
+```
+
 ## Estructura
 
 ```

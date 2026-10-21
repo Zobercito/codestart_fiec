@@ -1,0 +1,116 @@
+# Anatomía de un programa: cada línea y su porqué
+
+Vamos a abrir el programa de cinco líneas y mirar **qué hace cada línea y por
+qué tiene que estar ahí**. No qué significa el símbolo: por qué el lenguaje
+exige que esté.
+
+Si una línea no tiene explicación, es que todavía no la has entendido.
+
+## Las cinco líneas
+
+<VisorAnatomia
+  archivo="hola_mundo.c"
+  lineas={([
+    {
+      codigo: "#include <stdio.h>",
+      titulo: "Biblioteca estándar",
+      explicacion: "Le indica al compilador dónde encontrar la biblioteca de entrada y salida estándar. Sin esta línea, el procesador no sabría qué significa printf."
+    },
+    {
+      codigo: "int main() {",
+      titulo: "Función principal",
+      explicacion: "Es el punto de entrada: el programa siempre empieza a ejecutarse aquí, por mucho que tenga más funciones. El int indica que al terminar devolverá un número entero."
+    },
+    {
+      codigo: '    printf("Hola Mundo\\n");',
+      titulo: "Salida estándar",
+      explicacion: "Escribe texto en la pantalla. Las comillas son obligatorias, y el \\n es el salto de línea: sin él todo saldría en una sola fila."
+    },
+    {
+      codigo: "    return 0;",
+      titulo: "Tipo de retorno",
+      explicacion: "Termina la función principal y devuelve 0 como señal de que todo salió bien. Otro número sería la señal de un error."
+    },
+    {
+      codigo: "}",
+      titulo: "Llave de cierre",
+      explicacion: "Cierra el bloque de la función. Si olvidas cerrarla, el programa no compila: el compilador necesita saber dónde acaba cada bloque."
+    }
+  ])}
+/>
+
+## Por qué hacen falta todas
+
+¿Podría escribirse un programa más corto? Sí, técnicamente: se puede
+escribir un programa de C que no llame a `printf` y que devuelva
+directamente. Pero entonces no sería un programa que se pueda ejecutar
+como lo que la gente espera que un programa sea.
+
+Y esa es justo la observación importante: **muchas líneas de un programa no
+están ahí por la lógica del problema, sino por el contrato del lenguaje.**
+El lenguaje te pide ciertas cosas para poder traducirte de forma
+inequívoca, y si no cumples el contrato, el programa no funciona.
+
+Aprender a programar en el fondo es aprender dos cosas a la vez:
+
+1. Cómo se resuelve un problema.
+2. Qué contrato hay que cumplir para que el lenguaje entienda tu solución.
+
+La segunda es la que casi nadie enseña, y es la que hace que muchos
+programadores con experiencia sigan tropezando con cosas básicas.
+
+## La memoria, mientras el programa corre
+
+Vamos a ver un programa un poco más largo, donde el valor de una variable
+cambia. Esto es lo que hace un `int`: **un hueco con nombre en la memoria**
+donde se guarda un número.
+
+<SimuladorMemoria
+  inicial={[]}
+  pasos={([
+    [
+      { indice: 0, nombre: "edad", tipo: "int", valor: "17", paso: "int edad = 17;" }
+    ],
+    [
+      { indice: 0, nombre: "edad", tipo: "int", valor: "18", paso: "edad = edad + 1;" }
+    ],
+    [
+      { indice: 0, nombre: "edad", tipo: "int", valor: "18", paso: "if (edad >= 18) {" }
+    ]
+  ])}
+/>
+
+Fíjate en tres cosas:
+
+- Al ejecutar la primera instrucción, el hueco **aparece**. Antes de esa
+  línea, la variable no existe.
+- Al ejecutar la segunda, el valor **cambia** dentro del mismo hueco. El
+  nombre sigue siendo `edad`; lo que está dentro es lo que cambia.
+- Al ejecutar la tercera, el valor **no cambia**, pero el programa empieza
+  a **decidir**. La condición se evalúa con lo que hay en memoria ahora
+  mismo: 18 es mayor o igual que 18, así que el programa entra en esa
+  rama.
+
+> El `int` del principio no dice "que el número es pequeño". Dice qué
+> tipo de dato hay dentro del hueco, y por eso el procesador sabe
+> interpretarlo.
+
+## La analogía, otra vez
+
+La variable es un **cacharro con etiqueta**. La etiqueta es el nombre
+(`edad`), y dentro hay un valor (`17`). Puedes cambiar lo que hay dentro
+las veces que quieras; la etiqueta no se mueve.
+
+Por eso el error más común al empezar no es de sintaxis, sino **confundir
+la etiqueta con el contenido**: escribir `edad = "edad";` es poner la
+palabra "edad" dentro del cacharro, donde debería ir un número. El
+compilador lo detecta y te avisa; si el tipo fuera más flexible, el
+programa seguiría corriendo con un valor absurdo. Eso lo veremos en el
+módulo 4, con los tipos de datos.
+
+## Lo que te espera
+
+Ahora que sabes qué hace cada línea, toca escribirlas tú. El reto de esta
+lección es completar un programa que clasifique una edad, usando un
+condicional. You'll ver cómo el analizador detecta si tu condición incluye
+el límite o no.

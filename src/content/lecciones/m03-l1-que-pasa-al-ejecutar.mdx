@@ -1,0 +1,102 @@
+# ¿Qué pasa cuando ejecutamos un programa?
+
+Escribir un programa no es lo mismo que ejecutarlo. Escribes una lista de
+instrucciones, y cuando la mandas a ejecutar ocurre una secuencia de pasos
+que rara vez se ha hecho explícita. Esa secuencia es justo lo que genera la
+frustración de quien empieza: el programa no hace lo que esperabas, y no
+sabes en qué momento se desvió.
+
+Vamos a recorrerla paso a paso. Después, en la lección siguiente, lo
+aplicaremos línea por línea sobre un programa real.
+
+## La analogía de la receta
+
+Un programa se parece a una receta de cocina. La receta es el **código
+fuente**: una lista escrita en un lenguaje que alguien entiende. Pero
+cocinar no es leer la receta.
+
+- Alguien tiene que **leer** la receta y entender qué hay que hacer.
+- La tiene que **traducir** a acciones concretas, una por una.
+- Las acciones se ejecutan **con los ingredientes que hay encima de la
+  mesa**, no con los que quería el autor.
+- Al final sale un plato, que es la **salida**.
+
+En un programa, la traducción la hace el procesador y los ingredientes
+son los datos que hay en memoria. Por eso el mismo programa da resultados
+distintos con datos distintos, y por eso un error de una letra en los
+datos se nota en la salida.
+
+> Lo que muchos creen es que el procesador "entiende" el código. No lo
+> entiende: lo traduce, paso a paso, sin saltarse nada.
+
+<RecorridoInstruccion
+  etapas={([
+    {
+      titulo: "Código fuente",
+      resumen: "Lo que escribes",
+      detalle: "El archivo de texto con tus instrucciones, escrito en el lenguaje del curso. Es lo único que escribes tú: el resto lo hace el equipo de traducción.",
+      analogia: "La receta, tal como está en el recetario."
+    },
+    {
+      titulo: "Traducción",
+      resumen: "Compilar o interpretar",
+      detalle: "El procesador recorre tus instrucciones y las convierte a algo que la máquina ejecuta sin ambigüedad. Puede hacerlo de una vez (compilar) o línea a línea (interpretar).",
+      analogia: "El cocinero que lee la receta y va convirtiendo cada frase en una acción."
+    },
+    {
+      titulo: "Memoria",
+      resumen: "Dónde se guardan los datos",
+      detalle: "Cada variable es un espacio con nombre donde se guarda un valor. El programa lee y escribe ahí, y al final se tira todo.",
+      analogia: "Los ingredientes sobre la mesa y los cacharros de la cocina."
+    },
+    {
+      titulo: "Salida",
+      resumen: "Lo que ves",
+      detalle: "Lo que el programa escribe. Si no coincide con lo que esperabas, el error está en alguno de los tres pasos anteriores.",
+      analogia: "El plato servido."
+    }
+  ])}
+/>
+
+## Un programa mínimo
+
+Todo programa de este curso tiene la misma estructura: una biblioteca, una
+función principal, y el final de esa función. Escribámoslo:
+
+```c
+#include <stdio.h>
+
+int main() {
+    printf("Hola Mundo\n");
+    return 0;
+}
+```
+
+Son cinco líneas, y cada una existe por una razón concreta. Pero antes de
+explicarlas una por una, hay algo que conviene entender del todo.
+
+## El programa no se ejecuta "de arriba abajo"
+
+Cuando el procesador traduce tu programa, no ejecuta las instrucciones en
+el orden en que están escritas. Las ejecuta **en el orden en que el
+programa dice que se ejecuten**. Cuando hay una condición, el procesador
+decide en ese momento qué camino sigue.
+
+Esto significa que una instrucción puede estar escrita al final del
+programa y ejecutarse al principio, si el flujo la lleva hasta allí. Por
+eso leer el código de arriba abajo no siempre te dice qué va a pasar.
+
+En el módulo 5 veremos las estructuras que controlan ese flujo: las
+condicionales y los ciclos.
+
+> Por ahora basta con una idea: **el código dice qué se ejecuta, y el
+> procesador va siguiendo esas instrucciones.**
+
+## Lo que veremos en la siguiente lección
+
+Vamos a abrir el programa de cinco líneas línea por línea, explicar para
+qué sirve cada una y ver, en la memoria, cómo se va guardando la
+información mientras el programa corre.
+
+Cuando termines, te espera un reto: un programa que decide si una edad
+es mayor o menor de dieciocho, escrito con un condicional.
