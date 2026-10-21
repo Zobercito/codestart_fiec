@@ -1,0 +1,40 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+
+# Produccion
+build/
+dist/
+
+# Variables de entorno (nunca se versionan)
+.env
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Pruebas
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/coverage/
+
+# Plan de trabajo interno del equipo (no forma parte del entregable)
+plan.md
+
+# Indice local de CodeGraph
+.codegraph/
+
+# Sistema
+.DS_Store

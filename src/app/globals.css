@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS DEL DISEÑO — CodeStart FIEC
+   Mismos valores que la guía de estilo del mockup (Avance 2).
+   Contraste verificado contra WCAG 2.1 AA: los pares permitidos
+   están documentados en el mockup, sección "Guía de estilo".
+   ═══════════════════════════════════════════════════════════════ */
+@theme {
+  /* FIEC — institucional: navegación, enlaces, acciones primarias */
+  --color-fiec-50: #EFF7FD;
+  --color-fiec-100: #D7EBFA;
+  --color-fiec-200: #AFD7F4;
+  --color-fiec-300: #7CBCE9;
+  --color-fiec-400: #479BDA;
+  --color-fiec-500: #1779BE;
+  --color-fiec-600: #0B62A4;
+  --color-fiec-700: #0A4F86;
+  --color-fiec-800: #0B406B;
+  --color-fiec-900: #0C3455;
+
+  /* UP — universidad: progreso, racha, insignias, advertencias.
+     Para texto sobre fondo claro usar 700 u 800: 500 y 600 no
+     alcanzan 4.5:1. */
+  --color-up-50: #FEF9E7;
+  --color-up-100: #FDEBC8;
+  --color-up-200: #F8D98A;
+  --color-up-400: #F8C748;
+  --color-up-500: #F5B014;
+  --color-up-600: #D69400;
+  --color-up-700: #A16207;
+  --color-up-800: #854D0E;
+  --color-up-900: #713F12;
+
+  /* Éxito — acierto y completado. Sobre el 500 el texto va oscuro. */
+  --color-coder-100: #D1FAE5;
+  --color-coder-200: #A7F3D0;
+  --color-coder-300: #6EE7B7;
+  --color-coder-400: #34D399;
+  --color-coder-500: #10B981;
+  --color-coder-600: #059669;
+  --color-coder-700: #047857;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════ */
+body {
+  background-color: var(--color-slate-50);
+  color: var(--color-slate-800);
+}
+
+/* Tailwind v4 usa cursor: default en los botones. */
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MICROINTERACCIONES DEL EDITOR
+   Portadas del mockup, sección "Guía de estilo" > "Microinteracciones".
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Retícula del encabezado de módulo */
+@utility dotgrid {
+  background-image: radial-gradient(#94A3B8 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+/* Barras de desplazamiento finas, solo en el área de código */
+@utility thin-scroll {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #0F172A;
+  }
+}
+
+/* Cursor de escritura */
+@utility fake-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  background: #34D399;
+  vertical-align: -2px;
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Subrayado de error: onda en vez de fondo, para no tapar el texto */
+@utility squiggle {
+  border-bottom: 2px wavy #F87171;
+}
+
+/* Línea de código activa al pasar el cursor */
+@utility anat-line {
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+  cursor: help;
+
+  &:hover {
+    background-color: #FEF3C7;
+    box-shadow: inset 3px 0 0 #F5B014;
+  }
+}
