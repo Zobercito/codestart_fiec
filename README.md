@@ -7,16 +7,21 @@ Repositorio del **Avance 3 · Desarrollo y Programación (parte 1)** — versió
 
 ---
 
-## Estado
+## Estado del Avance 3
 
-| Entregable de A3 | Estado |
+| Entregable | Estado |
 |---|---|
-| Navegación completa | Pendiente (fase 4) |
-| Acceso de usuarios | Pendiente (fase 2) |
-| Motor de contenidos | Pendiente (fase 3) |
-| Primeras actividades | Pendiente (fase 5) |
+| Navegación completa (dashboard, módulos, lecciones, retos) | ✅ Completa |
+| Acceso de usuarios (login, registro, roles, inscripción por código) | ✅ Completa |
+| Motor de contenidos (MDX + 4 componentes interactivos) | ✅ Completa |
+| Motor de validación de C (análisis estático, 13 pruebas) | ✅ Completa |
+| Pantallas A (Dashboard), B (Lección), C (Editor de retos) | ✅ Completa |
+| Pruebas E2E (Playwright, 14 tests escritorio + tableta) | ✅ Completa |
+| Contraste WCAG AA en todas las rutas | ✅ 0 fallos |
+| Despliegue en Vercel | 🔄 Pendiente (falta token) |
+| Panel docente con analítica (RF15) | 📋 Próximo (A4) |
 
-Fase actual: **0 · cimientos** (proyecto, tokens del diseño, estructura).
+Fase actual: **6 · Cierre** (documentación, pruebas, despliegue).
 
 ## Requisitos
 
@@ -35,6 +40,38 @@ Antes de commitear:
 ```bash
 npm run typecheck && npm run lint && npm run build
 ```
+
+## Despliegue en Vercel
+
+El proyecto está listo para desplegar. Falta una credencial de la cuenta de Vercel.
+
+```bash
+# 1. Instalar Vercel CLI (si no la tienes)
+npm i -g vercel@latest
+
+# 2. Login en tu cuenta
+vercel login
+
+# 3. Desde la raíz del repo
+vercel --prod
+```
+
+Vercel pedirá autorización para crear el proyecto y configurará las variables de
+entorno que ya están en `.env.local` (las sensibles están en el keyring del
+sistema, no en el repo). Las variables que Vercel necesita:
+
+| Variable | Origen |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `.env.local` (público) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `.env.local` (público) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Keyring → `cred get codestart-fiec service-role` |
+| `SUPABASE_DB_URL` | `.env.local` (público, pooler) |
+| `SUPABASE_DB_PASSWORD` | Keyring → `cred get codestart-fiec db-password` |
+
+Si prefieres no dar el token, ejecuta tú mismo `vercel --prod` desde la raíz
+del repo clonado.
+
+---
 
 ## Variables de entorno
 
