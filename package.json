@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "supabase db push --linked",
     "db:seed": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/seed.sql",
-    "db:types": "supabase gen types typescript --linked --schema public > src/lib/supabase/types.generados.ts",
+    "db:types": "node --env-file=.env.local scripts/generar-tipos.mjs",
     "db:usuarios": "node --env-file=.env.local scripts/crear-usuarios.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
