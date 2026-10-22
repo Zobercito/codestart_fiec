@@ -1,4 +1,3 @@
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
@@ -40,6 +39,32 @@ isOneToOne: false
       columns: ["reto_id"]
 isOneToOne: false
       referencedRelation: "retos"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"codigos": {
+                  Row: {
+                    "actualizado_en": string,"codigo": string,"id": string,"pistas_usadas": number,"reto_id": string,"usuario_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actualizado_en"?: string,"codigo"?: string,"id"?: string,"pistas_usadas"?: number,"reto_id": string,"usuario_id": string
+                  }
+                  Update: {
+                    "actualizado_en"?: string,"codigo"?: string,"id"?: string,"pistas_usadas"?: number,"reto_id"?: string,"usuario_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "codigos_reto_id_fkey"
+      columns: ["reto_id"]
+isOneToOne: false
+      referencedRelation: "retos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "codigos_usuario_id_fkey"
+      columns: ["usuario_id"]
+isOneToOne: false
+      referencedRelation: "perfiles"
       referencedColumns: ["id"]
     }
                   ]

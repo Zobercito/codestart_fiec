@@ -28,6 +28,7 @@ export type LeccionConContexto = {
   contenido: string;
   anterior: { titulo: string; orden: number } | null;
   siguiente: { titulo: string; orden: number } | null;
+  retos: { id: string; enunciado: string; tipo: string }[];
   estado: "pendiente" | "en_progreso" | "completado";
 };
 
@@ -71,6 +72,13 @@ export const obtenerLeccion = cache(
       .eq("leccion_id", leccion.id)
       .maybeSingle();
 
+    // Los retos de la leccion: son el destino del boton «Ir al reto».
+    const { data: retos } = await supabase
+      .from("retos")
+      .select("id, enunciado, tipo")
+      .eq("leccion_id", leccion.id)
+      .order("orden");
+
     return {
       leccion: {
         id: leccion.id,
@@ -82,6 +90,7 @@ export const obtenerLeccion = cache(
       contenido,
       anterior: anterior ? { titulo: anterior.titulo, orden: anterior.orden } : null,
       siguiente: siguiente ? { titulo: siguiente.titulo, orden: siguiente.orden } : null,
+      retos: retos ?? [],
       estado: (progreso?.estado ?? "pendiente") as LeccionConContexto["estado"],
     };
   },
