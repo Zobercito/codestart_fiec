@@ -105,6 +105,43 @@ export default async function PaginaLeccion({
           <article className="mt-6">
             <ContenidoMDX fuente={contenido} />
           </article>
+
+          {/* Retos de la leccion.
+              Van en el flujo principal y no en el panel lateral: en
+              tableta el lateral esta oculto, y el estudiante se
+              quedaba sin manera de llegar al reto. */}
+          {retos.length > 0 ? (
+            <section className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+              <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+                Retos de esta lección
+              </h2>
+              <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                {retos.map((reto) => (
+                  <li key={reto.id}>
+                    <Link
+                      href={`/retos/${reto.id}`}
+                      className="flex h-full items-start gap-3 rounded-xl border border-slate-200 p-3 transition hover:border-fiec-300 hover:bg-fiec-50"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-fiec-50 text-[13px] text-fiec-700"
+                      >
+                        {reto.tipo === "codigo" ? "⌨" : "◉"}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-[13px] font-bold leading-snug text-slate-800">
+                          {reto.enunciado}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-slate-600">
+                          {reto.tipo === "codigo" ? "Reto de código" : "Reto conceptual"}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
 
         {/* Panel lateral: el temario del modulo */}
@@ -123,34 +160,6 @@ export default async function PaginaLeccion({
                 </Link>
               </li>
             </ul>
-
-            {retos.length > 0 ? (
-              <>
-                <div className="mt-4 border-t border-slate-200 pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                  Retos de esta lección
-                </div>
-                <ul className="mt-2 space-y-1.5">
-                  {retos.map((reto) => (
-                    <li key={reto.id}>
-                      <Link
-                        href={`/retos/${reto.id}`}
-                        className="flex items-start gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
-                      >
-                        <span aria-hidden="true" className="mt-0.5 text-[11px]">
-                          {reto.tipo === "codigo" ? "⌨" : "◉"}
-                        </span>
-                        <span>
-                          {reto.enunciado}
-                          <span className="mt-0.5 block text-[10.5px] font-normal text-slate-500">
-                            {reto.tipo === "codigo" ? "Reto de código" : "Reto conceptual"}
-                          </span>
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : null}
 
             <p className="mt-4 border-t border-slate-200 pt-3 text-[11.5px] leading-relaxed text-slate-500">
               El contenido de esta lección está versionado en el repositorio, junto al código.
