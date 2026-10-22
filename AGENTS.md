@@ -40,6 +40,8 @@ npm run dev        # desarrollo, Turbopack, http://localhost:3000
 npm run build      # build de producción
 npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
+npm test           # Vitest (el motor de validación)
+npm run db:types   # regenera src/lib/supabase/types.generados.ts
 ```
 
 Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run build`.
@@ -49,6 +51,12 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
 - `npm audit` reporta 5 vulnerabilidades altas en `braces`/`micromatch`, todas dentro de
   `eslint-config-next`: son tooling de desarrollo, no runtime. El arreglo que ofrece degrada
   `eslint-config-next` a la 14 y no se aplica.
+- **`npm run db:types` usa `--db-url`, no `--linked`.** El modo `--linked` pide el PAT
+  (`SUPABASE_ACCESS_TOKEN`) y, cuando falla, la CLI escribe su mensaje de error **dentro** del
+  archivo de tipos: `types.generados.ts` se queda con un JSON de error y el typecheck entero se
+  rompe. El script `scripts/generar-tipos.mjs` deja el archivo anterior intacto si la generación
+  falla, y usa la conexión del pooler (que es la única que resuelve).
+
 
 ## Dónde vive cada cosa
 
@@ -61,6 +69,15 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
 | `src/lib/validacion/` | El analizador de C: parser, AST, tipos, motor de reglas |
 | `src/content/` | Módulos y retos en **MDX + JSON**, versionados en el repo (no en la base de datos) |
 | `supabase/migrations/` | SQL versionado · `supabase/seed.sql` |
+
+### Tablas que no salen del ODT
+
+El ODT §16.1 lista 8 tablas; el esquema tiene 11. Las tres que se añadieron:
+
+| Tabla | Para qué |
+|---|---|
+| `modulos` / `lecciones` | Separadas: el módulo tiene 4 lecciones y la lección es la unidad de progreso |
+| `codigos` | El **borrador**: el código que el estudiante está escribiendo ahora (RF11). `intentos` guarda lo entregado, no lo que se está escribiendo |
 
 ## Next.js 16 — lo que rompe y no aparece en tus datos de entrenamiento
 
@@ -103,6 +120,14 @@ Antes de commitear, en este orden: `npm run typecheck && npm run lint && npm run
   guía de estilo del mockup (pestaña «Diseño» → «Guía de estilo»). En resumen: `slate-400` no sirve
   para texto sobre fondo claro (2,6:1) → usa `slate-500`; `up-500` y `up-600` tampoco → usa `up-700`
   o `up-800`; `coder-500` y `coder-600` → `coder-700`.
+- **Ojo: `slate-500` tampoco llega a AA sobre `slate-50`** (4,35:1, pide 4,5). La regla práctica:
+  - texto sobre `slate-50` o `slate-100` → `slate-600`;
+  - texto sobre `slate-900` o `slate-950` → `slate-400` (al revés: sobre oscuro hay que subir);
+  - `slate-600` sobre `slate-900` da 2,35:1, así que no vale.
+  La auditoría con Playwright (abajo) es la que manda: no se razona el contraste a ojo.
+- **El auditor de contraste tiene que pasar los colores por un canvas.** Tailwind v4 devuelve los
+  colores en `oklab` (`lab(...)`), no en `rgb(...)`: un auditor que solo entienda `rgb()` no ve
+  ningún color y da falsos "todo blanco".
 - **No uses `opacity` para atenuar estados**: reduce el contraste del texto de forma no
   controlada. Usa colores explícitos.
 - Es Tailwind v4, no v3: `bg-linear-to-*` (no `bg-gradient-to-*`) y `ring-3` (un `ring` a secas
@@ -153,6 +178,29 @@ del locale y de la zona horaria del servidor, y `new Date()` dispara el detector
 inestables de Next.
 - Todo lo que responde al cursor necesita equivalente por teclado y por toque
   (`hover:` + `focus-visible:` + clic): el dispositivo real del curso es la tableta.
+
+### El editor de retos: el servidor manda
+
+- **La pantalla es `/retos/[id]`** (el id del reto, un uuid). La lección enlaza al reto desde el
+  panel lateral; el botón «Ir al reto» aparece cuando no hay lección siguiente.
+- **Quien verifica es el servidor**: `POST /api/retos/[id]/verificar` lee las reglas y los casos
+  de la base de datos, corre el motor y guarda el intento. El navegador solo manda el código y
+  muestra lo que le devolvieron. Si el análisis fuera en el cliente, bastaría con falsear la
+  respuesta para aprobar cualquier reto.
+- **Las pistas reveladas las cuenta el servidor**, no el cliente: las lee de `codigos.pistas_usadas`.
+  Si las aceptara del `fetch`, el estudiante podría pedir pistas y no pagar los 10 puntos.
+- **El autoguardado** va a `PUT /api/retos/[id]/borrador` (tabla `codigos`), con 1,5 s de retardo.
+  Al pedir una pista se guarda **sin retardo**, para que el descuento aplique aunque el estudiante
+  verifique justo después.
+- **CodeMirror 6** (`codemirror` + `@codemirror/lang-cpp` + `@codemirror/theme-one-dark`).
+  El componente se crea una sola vez: si se recreara en cada render, el cursor saltaría.
+- **El auto-cierre de llaves de CodeMirror está activo, pero con un atajo propio.** El de la
+  librería solo se salta la llave que puso si está pegada al cursor; con un salto de línea de por
+  medio (justo lo que pasa al pulsar Enter) escribe una llave de más y el estudiante acaba con un
+  programa que no reconoce. El keymap `saltarLlaveDeCierre` (`Prec.highest`) salta a la llave que
+  ya está escrita aunque haya líneas en medio.
+- **La verificación es autoritativa pero el análisis no se ejecuta en el navegador**: el Worker
+  (`src/lib/validacion/worker.ts`) queda para el análisis local mientras se escribe.
 
 ## Fuera de esta fase
 

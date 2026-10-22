@@ -23,7 +23,7 @@ export default async function PaginaLeccion({
   const datos = await obtenerLeccion(perfil, Number(modulo), Number(leccion));
   if (!datos) notFound();
 
-  const { leccion: l, modulo: m, contenido, anterior, siguiente, estado } = datos;
+  const { leccion: l, modulo: m, contenido, anterior, siguiente, estado, retos } = datos;
 
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6">
@@ -32,11 +32,11 @@ export default async function PaginaLeccion({
         <Link href="/modulos" className="font-semibold text-fiec-700 hover:underline">
           Ruta de módulos
         </Link>
-        <span className="text-slate-400">›</span>
+        <span className="text-slate-600">›</span>
         <Link href={`/modulos/${m.orden}`} className="font-semibold text-fiec-700 hover:underline">
           Módulo {m.orden} · {m.titulo}
         </Link>
-        <span className="text-slate-400">›</span>
+        <span className="text-slate-600">›</span>
         <span className="font-semibold text-slate-800">Lección {l.orden}</span>
       </nav>
 
@@ -83,12 +83,19 @@ export default async function PaginaLeccion({
                 >
                   Ir a la lección {siguiente.orden} →
                 </Link>
+              ) : retos.length > 0 ? (
+                <Link
+                  href={`/retos/${retos[0].id}`}
+                  className="rounded-xl bg-fiec-600 px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-fiec-700"
+                >
+                  Ir al reto →
+                </Link>
               ) : (
                 <Link
                   href="/dashboard"
                   className="rounded-xl bg-fiec-600 px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-fiec-700"
                 >
-                  Ir al reto →
+                  Ir al panel →
                 </Link>
               )}
             </div>
@@ -116,6 +123,35 @@ export default async function PaginaLeccion({
                 </Link>
               </li>
             </ul>
+
+            {retos.length > 0 ? (
+              <>
+                <div className="mt-4 border-t border-slate-200 pt-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                  Retos de esta lección
+                </div>
+                <ul className="mt-2 space-y-1.5">
+                  {retos.map((reto) => (
+                    <li key={reto.id}>
+                      <Link
+                        href={`/retos/${reto.id}`}
+                        className="flex items-start gap-2 rounded-lg px-2.5 py-2 text-[12.5px] font-semibold text-slate-700 transition hover:bg-slate-50"
+                      >
+                        <span aria-hidden="true" className="mt-0.5 text-[11px]">
+                          {reto.tipo === "codigo" ? "⌨" : "◉"}
+                        </span>
+                        <span>
+                          {reto.enunciado}
+                          <span className="mt-0.5 block text-[10.5px] font-normal text-slate-500">
+                            {reto.tipo === "codigo" ? "Reto de código" : "Reto conceptual"}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+
             <p className="mt-4 border-t border-slate-200 pt-3 text-[11.5px] leading-relaxed text-slate-500">
               El contenido de esta lección está versionado en el repositorio, junto al código.
             </p>

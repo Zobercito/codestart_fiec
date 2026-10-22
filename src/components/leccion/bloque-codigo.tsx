@@ -20,7 +20,7 @@ export function BloqueCodigo({
   return (
     <div className="my-4 overflow-hidden rounded-xl bg-slate-900 ring-1 ring-slate-800">
       <div className="flex items-center gap-2 border-b border-slate-800 px-3.5 py-1.5">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {lenguaje}
         </span>
       </div>

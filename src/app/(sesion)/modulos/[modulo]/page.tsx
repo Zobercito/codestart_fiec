@@ -49,7 +49,7 @@ export default async function PaginaModulo({
         <Link href="/modulos" className="font-semibold text-fiec-700 hover:underline">
           Ruta de módulos
         </Link>
-        <span className="text-slate-400">›</span>
+        <span className="text-slate-600">›</span>
         <span className="font-semibold text-slate-800">Módulo {modulo.orden}</span>
       </nav>
 

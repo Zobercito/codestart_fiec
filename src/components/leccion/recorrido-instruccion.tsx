@@ -49,7 +49,7 @@ export function RecorridoInstruccion({ etapas }: { etapas: EtapaRecorrido[] }) {
             >
               <span
                 className={`grid h-8 w-8 place-items-center rounded-lg text-sm font-extrabold ${
-                  encendida ? "bg-fiec-600 text-white" : "bg-slate-100 text-slate-500"
+                  encendida ? "bg-fiec-600 text-white" : "bg-slate-100 text-slate-600"
                 }`}
               >
                 {i + 1}

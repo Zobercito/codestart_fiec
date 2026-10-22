@@ -175,7 +175,7 @@ export default async function PaginaDashboard() {
                     ● En progreso
                   </span>
                 ) : bloqueado ? (
-                  <span className="absolute right-3 top-3 rounded-full bg-slate-800/80 px-2 py-0.5 text-[10px] font-extrabold text-white">
+                  <span className="absolute right-3 top-3 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-extrabold text-white">
                     🔒 Bloqueado
                   </span>
                 ) : null}

@@ -23,8 +23,8 @@ export function Navbar({ perfil }: { perfil: Perfil }) {
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
           <div className="hidden items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-semibold md:flex">
             <span className="rounded-md bg-white px-3 py-1.5 text-fiec-700 shadow-sm">Módulos</span>
-            <span className="px-3 py-1.5 text-slate-500">Mis tareas</span>
-            <span className="px-3 py-1.5 text-slate-500">Mis medallas</span>
+            <span className="px-3 py-1.5 text-slate-600">Mis tareas</span>
+            <span className="px-3 py-1.5 text-slate-600">Mis medallas</span>
           </div>
 
           {perfil.rol !== "estudiante" ? (
@@ -42,12 +42,12 @@ export function Navbar({ perfil }: { perfil: Perfil }) {
             </div>
             <div className="hidden leading-tight sm:block">
               <div className="text-xs font-bold text-slate-700">{perfil.nombre}</div>
-              <div className="text-[10px] font-medium text-slate-500 capitalize">{perfil.rol}</div>
+              <div className="text-[10px] font-medium text-slate-600 capitalize">{perfil.rol}</div>
             </div>
             <form action={salir}>
               <button
                 type="submit"
-                className="rounded-lg px-2 py-1.5 text-[11px] font-bold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-lg px-2 py-1.5 text-[11px] font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-700"
               >
                 Salir
               </button>
