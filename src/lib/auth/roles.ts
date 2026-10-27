@@ -25,6 +25,14 @@ export const PREFIJOS_DE_DOCENTE = ["/docente"];
 /** Prefijos de ruta que solo puede usar un admin. */
 export const PREFIJOS_DE_ADMIN = ["/admin"];
 
+/**
+ * La pantalla de inicio de cada rol. El docente administra el curso
+ * desde su panel; el estudiante, desde su dashboard de progreso.
+ */
+export function rutaDeInicio(rol: Rol | null): string {
+  return rol === "docente" || rol === "admin" ? "/docente" : "/dashboard";
+}
+
 export function esRutaPublica(ruta: string): boolean {
   return RUTAS_PUBLICAS.some((p) => ruta === p || ruta.startsWith(`${p}/`));
 }

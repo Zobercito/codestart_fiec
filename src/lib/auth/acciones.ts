@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import { rutaDeInicio, type Rol } from "@/lib/auth/roles";
 
 /**
  * Acciones de acceso de la plataforma.
@@ -40,7 +41,7 @@ export async function entrar(
   const { correo, contrasena } = parseo.data;
   const supabase = await crearClienteSupabase();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: correo,
     password: contrasena,
   });
@@ -52,8 +53,22 @@ export async function entrar(
     return { ok: false, error: error.message };
   }
 
+  // El rol se lee del perfil, no del formulario: el destino depende de
+  // lo que diga la base de datos, no de lo que envie el cliente.
+  const usuario = data.user;
+  const perfil = usuario
+    ? (
+        await supabase
+          .from("perfiles")
+          .select("rol")
+          .eq("id", usuario.id)
+          .maybeSingle()
+      ).data
+    : null;
+
   revalidatePath("/dashboard");
-  redirect("/dashboard");
+  revalidatePath("/docente");
+  redirect(rutaDeInicio((perfil?.rol as Rol | null) ?? null));
 }
 
 export async function salir() {

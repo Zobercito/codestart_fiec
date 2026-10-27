@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { obtenerMiPerfil } from "@/lib/auth/dal";
 
@@ -55,21 +54,6 @@ export default async function PaginaDocente() {
             <li>· Asignar módulos o retos con fecha de entrega.</li>
           </ul>
         </section>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link
-          href="/dashboard"
-          className="rounded-xl bg-fiec-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-fiec-700"
-        >
-          Ir a mi panel de estudiante
-        </Link>
-        <Link
-          href="/modulos"
-          className="rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 transition hover:bg-slate-50"
-        >
-          Ver los módulos
-        </Link>
       </div>
     </main>
   );

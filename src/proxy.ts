@@ -1,6 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { actualizarSesion } from "@/lib/supabase/proxy";
-import { esRutaPublica, rolAdmiteRuta, rolDeJwt } from "@/lib/auth/roles";
+import {
+  esRutaPublica,
+  rolAdmiteRuta,
+  rolDeJwt,
+  rutaDeInicio,
+} from "@/lib/auth/roles";
 
 /**
  * Proxy de Next.js 16 (antes middleware.ts).
@@ -22,15 +27,17 @@ export default async function proxy(peticion: NextRequest) {
     return NextResponse.redirect(destino);
   }
 
+  // El rol sale del JWT. Cada rol vuelve a su propia pantalla de inicio.
+  const rol = rolDeJwt(verificado);
+
   // Con sesion: la portada y las pantallas de acceso ya no hacen falta.
   if (ruta === "/" || ruta === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", peticion.url));
+    return NextResponse.redirect(new URL(rutaDeInicio(rol), peticion.url));
   }
 
-  // El rol sale del JWT. Si no permite la ruta, se vuelve al panel.
-  const rol = rolDeJwt(verificado);
+  // Si el rol no permite la ruta, se vuelve al inicio de ese rol.
   if (!rolAdmiteRuta(rol, ruta)) {
-    return NextResponse.redirect(new URL("/dashboard", peticion.url));
+    return NextResponse.redirect(new URL(rutaDeInicio(rol), peticion.url));
   }
 
   return respuesta;

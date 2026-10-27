@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { IconoModulo } from "@/components/modulos/icono-modulo";
 import { formatearFecha } from "@/lib/fechas";
 import {
@@ -16,6 +17,10 @@ import {
 export default async function PaginaDashboard() {
   const perfil = await obtenerMiPerfil();
   if (!perfil) return null;
+
+  // El dashboard mide el avance de un estudiante. Un docente que llegue
+  // aqui por una URL directa vuelve a su panel.
+  if (perfil.rol !== "estudiante") redirect("/docente");
 
   const [grupo, ruta, tarea] = await Promise.all([
     obtenerMiGrupo(perfil),

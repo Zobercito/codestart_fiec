@@ -21,20 +21,22 @@ export function Navbar({ perfil }: { perfil: Perfil }) {
         <Marca compacta />
 
         <div className="ml-auto flex items-center gap-1 sm:gap-3">
-          <div className="hidden items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-semibold md:flex">
-            <Link
-              href="/modulos"
-              className="rounded-md bg-white px-3 py-1.5 text-fiec-700 shadow-sm transition hover:text-fiec-800"
-            >
-              Módulos
-            </Link>
-            <Link
-              href="/dashboard#tareas"
-              className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
-            >
-              Mis tareas
-            </Link>
-          </div>
+          {perfil.rol === "estudiante" ? (
+            <div className="hidden items-center gap-1 rounded-lg bg-slate-100 p-1 text-xs font-semibold md:flex">
+              <Link
+                href="/modulos"
+                className="rounded-md bg-white px-3 py-1.5 text-fiec-700 shadow-sm transition hover:text-fiec-800"
+              >
+                Módulos
+              </Link>
+              <Link
+                href="/dashboard#tareas"
+                className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
+              >
+                Mis tareas
+              </Link>
+            </div>
+          ) : null}
 
           {perfil.rol !== "estudiante" ? (
             <Link

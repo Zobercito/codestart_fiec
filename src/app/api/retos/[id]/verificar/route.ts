@@ -31,6 +31,21 @@ export async function POST(
     return NextResponse.json({ error: "No hay sesión activa." }, { status: 401 });
   }
 
+  // Solo los estudiantes entregan intentos: la tabla alimenta el
+  // analisis de errores del grupo, no la actividad del docente.
+  const { data: perfil } = await supabase
+    .from("perfiles")
+    .select("rol")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (perfil?.rol !== "estudiante") {
+    return NextResponse.json(
+      { error: "Solo los estudiantes pueden entregar intentos." },
+      { status: 403 },
+    );
+  }
+
   const { data: reto } = await supabase
     .from("retos")
     .select("id, tipo, enunciado, reglas, casos, pistas, puntos, intentos_maximos")
