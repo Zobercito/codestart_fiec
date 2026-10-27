@@ -46,10 +46,6 @@ export function FormularioAcceso() {
       >
         {pendiente ? "Entrando…" : "Entrar"}
       </button>
-
-      <p className="text-center text-[12.5px] leading-relaxed text-slate-600">
-        No hay registro público: las cuentas las crea el docente del curso.
-      </p>
     </form>
   );
 }
