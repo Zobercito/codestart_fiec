@@ -17,7 +17,7 @@ export type Rol = "estudiante" | "docente" | "admin";
 export const ROLES: readonly Rol[] = ["estudiante", "docente", "admin"];
 
 /** Rutas accesibles sin iniciar sesion. */
-export const RUTAS_PUBLICAS = ["/", "/login", "/registro"];
+export const RUTAS_PUBLICAS = ["/", "/login"];
 
 /** Prefijos de ruta que solo puede usar un docente (o un admin). */
 export const PREFIJOS_DE_DOCENTE = ["/docente"];

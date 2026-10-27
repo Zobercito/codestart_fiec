@@ -47,7 +47,7 @@ Facultad de Informática, Electrónica y Comunicación</p>
 
 | Área | Qué funciona |
 |---|---|
-| **Acceso** | Registro, inicio de sesión, inscripción con código de grupo y tres roles: estudiante, docente y administrador |
+| **Acceso** | Inicio de sesión con cuentas institucionales asignadas por el docente, inscripción con código de grupo y tres roles: estudiante, docente y administrador |
 | **Estudiante** | Dashboard con avance, ruta de 8 módulos, tarea asignada y medallas; navegación por módulos y lecciones |
 | **Lecciones** | Contenido en MDX con componentes interactivos: anatomía del código, simulador de memoria y recorrido de una instrucción |
 | **Retos** | Editor CodeMirror con autoguardado, casos de prueba, pistas progresivas y diagnóstico del error |
@@ -84,6 +84,9 @@ Facultad de Informática, Electrónica y Comunicación</p>
 | `sofia.bernal@up.ac.pa` | estudiante |
 
 **Contraseña:** `Codestart2026!`
+
+No hay registro público. Estas cuentas simulan las cuentas institucionales que el docente crea
+para el curso; los estudiantes solo inician sesión con la que se les asigna.
 
 El grupo de demostración es **Sección 1 · Verano 2026** y su código de inscripción es
 `FIEC-V26-8QK4`. Los datos son de prueba: no escribas información personal real.
@@ -147,7 +150,7 @@ tests/              pruebas E2E con Playwright
 docs/               arquitectura, modelo de datos y decisiones
 ```
 
-- **Rutas públicas:** `/`, `/login`, `/registro`.
+- **Rutas públicas:** `/`, `/login`.
 - **Rutas de sesión:** `/dashboard`, `/modulos`, `/modulos/[m]`, `/modulos/[m]/lecciones/[l]`,
   `/retos/[id]`, `/docente`.
 - **Seguridad:** la sesión se resuelve en el servidor y el rol se comprueba en el proxy, en la

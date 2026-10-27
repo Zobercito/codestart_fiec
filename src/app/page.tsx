@@ -34,19 +34,17 @@ export default function Portada() {
               instante y un panel para que tu docente sepa en que reforzar en clase.
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6">
               <Link
                 href="/login"
-                className="rounded-xl bg-fiec-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-fiec-600/25 transition hover:bg-fiec-700"
+                className="inline-flex rounded-xl bg-fiec-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-fiec-600/25 transition hover:bg-fiec-700"
               >
                 Entrar
               </Link>
-              <Link
-                href="/registro"
-                className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 transition hover:bg-slate-50"
-              >
-                Crear cuenta
-              </Link>
+              <p className="mt-3 max-w-md text-[12px] leading-relaxed text-slate-500">
+                El acceso es con la cuenta institucional que asigna el docente. No hay registro
+                público.
+              </p>
             </div>
           </div>
 

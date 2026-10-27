@@ -23,7 +23,7 @@ export default async function proxy(peticion: NextRequest) {
   }
 
   // Con sesion: la portada y las pantallas de acceso ya no hacen falta.
-  if (ruta === "/" || ruta === "/login" || ruta === "/registro") {
+  if (ruta === "/" || ruta === "/login") {
     return NextResponse.redirect(new URL("/dashboard", peticion.url));
   }
 
