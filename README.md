@@ -18,10 +18,11 @@ Repositorio del **Avance 3 · Desarrollo y Programación (parte 1)** — versió
 | Pantallas A (Dashboard), B (Lección), C (Editor de retos) | ✅ Completa |
 | Pruebas E2E (Playwright, 14 tests escritorio + tableta) | ✅ Completa |
 | Contraste WCAG AA en todas las rutas | ✅ 0 fallos |
-| Despliegue en Vercel | 🔄 Pendiente (falta token) |
+| Despliegue en Vercel | ✅ <https://codestart-fiec.vercel.app> |
 | Panel docente con analítica (RF15) | 📋 Próximo (A4) |
 
-Fase actual: **6 · Cierre** (documentación, pruebas, despliegue).
+Fase actual: **6 · Cierre completada**. El Avance 3 quedó entregado; el A4 empieza con el panel
+docente y el circuito de progreso.
 
 ## Requisitos
 
@@ -43,7 +44,10 @@ npm run typecheck && npm run lint && npm run build
 
 ## Despliegue en Vercel
 
-El proyecto está listo para desplegar. Falta una credencial de la cuenta de Vercel.
+La versión alfa está desplegada en **<https://codestart-fiec.vercel.app>** (verificada el
+26 de octubre de 2026).
+
+Para volver a desplegar:
 
 ```bash
 # 1. Instalar Vercel CLI (si no la tienes)
@@ -56,9 +60,8 @@ vercel login
 vercel --prod
 ```
 
-Vercel pedirá autorización para crear el proyecto y configurará las variables de
-entorno que ya están en `.env.local` (las sensibles están en el keyring del
-sistema, no en el repo). Las variables que Vercel necesita:
+Vercel ya tiene el proyecto vinculado y las variables de entorno configuradas. Las
+variables que necesita son:
 
 | Variable | Origen |
 |---|---|
@@ -68,8 +71,8 @@ sistema, no en el repo). Las variables que Vercel necesita:
 | `SUPABASE_DB_URL` | `.env.local` (público, pooler) |
 | `SUPABASE_DB_PASSWORD` | Keyring → `cred get codestart-fiec db-password` |
 
-Si prefieres no dar el token, ejecuta tú mismo `vercel --prod` desde la raíz
-del repo clonado.
+Tras cada despliegue, comprueba `/login` y una lección con una cuenta de prueba. Si el
+proyecto se recrea desde cero, ejecuta `vercel link` antes de `vercel --prod`.
 
 ---
 

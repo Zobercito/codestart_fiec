@@ -99,10 +99,13 @@ export default async function PaginaDashboard() {
 
       {/* Tarea asignada (RF13) */}
       {tarea ? (
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5">
+        <div
+          id="tareas"
+          className="mt-6 scroll-mt-24 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5"
+        >
           <div className="flex flex-wrap items-center gap-4">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-up-500 text-lg">
-              📌
+              <span aria-hidden="true">📌</span>
             </div>
             <div className="min-w-0">
               <div className="text-[10px] font-extrabold uppercase tracking-wider text-up-700">
@@ -113,7 +116,7 @@ export default async function PaginaDashboard() {
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
                 <span>
-                  📅 Entrega:{" "}
+                  <span aria-hidden="true">📅</span> Entrega:{" "}
                   <strong className="font-semibold text-slate-700">
                     {formatearFecha(tarea.fecha_entrega)}
                   </strong>
