@@ -21,11 +21,7 @@ const CONTRASENA = "Codestart2026!";
 
 const usuarios = [
   { correo: "docente@up.ac.pa", nombre: "Alvin Blanco", rol: "docente" },
-  { correo: "julieth.rojas@up.ac.pa", nombre: "Julieth Rojas", rol: "estudiante" },
-  { correo: "luis.martinez@up.ac.pa", nombre: "Luis Martínez", rol: "estudiante" },
-  { correo: "camila.rios@up.ac.pa", nombre: "Camila Ríos", rol: "estudiante" },
-  { correo: "andres.perez@up.ac.pa", nombre: "Andrés Pérez", rol: "estudiante" },
-  { correo: "sofia.bernal@up.ac.pa", nombre: "Sofía Bernal", rol: "estudiante" },
+  { correo: "francisco.gonzalez@up.ac.pa", nombre: "Francisco González", rol: "estudiante" },
 ];
 
 const cabecerasAuth = {

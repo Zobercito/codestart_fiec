@@ -77,11 +77,7 @@ Facultad de Informática, Electrónica y Comunicación</p>
 | Correo | Rol |
 |---|---|
 | `docente@up.ac.pa` | docente |
-| `julieth.rojas@up.ac.pa` | estudiante |
-| `luis.martinez@up.ac.pa` | estudiante |
-| `camila.rios@up.ac.pa` | estudiante |
-| `andres.perez@up.ac.pa` | estudiante |
-| `sofia.bernal@up.ac.pa` | estudiante |
+| `francisco.gonzalez@up.ac.pa` | estudiante |
 
 **Contraseña:** `Codestart2026!`
 
