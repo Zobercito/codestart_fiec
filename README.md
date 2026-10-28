@@ -43,6 +43,83 @@ Facultad de Informática, Electrónica y Comunicación</p>
 
 ---
 
+## El proyecto
+
+**El problema.** Los estudiantes entran al Curso Propedéutico de la FIEC sin haber programado
+nunca, y el tiempo de clase se consume explicando lo mismo a ritmos distintos. Quien se atrasa no
+tiene dónde practicar, y quien avanza rápido se aburre.
+
+**La respuesta.** CodeStart FIEC es una plataforma web que acompaña al curso: una ruta de ocho
+módulos con práctica inmediata, diagnóstico del error en lenguaje natural y una vista del grupo
+para el docente. El objetivo es que un estudiante sin experiencia llegue a escribir, leer y
+depurar programas sencillos en C antes de iniciar la carrera.
+
+**Para quién.**
+
+- **Estudiantes del propedéutico**: avanzan a su ritmo y reciben retroalimentación al instante.
+- **Docente del curso**: ve el avance de su grupo, los errores más frecuentes y asigna la tarea.
+- **Coordinación**: crea las cuentas; la interfaz de administración llega después.
+
+**Qué no es.** No ejecuta C (lo analiza estáticamente), no sustituye las clases ni califica fuera
+del curso, y no incluye todavía exportación CSV (RF17), editor de contenidos (RF18) ni consola de
+administración.
+
+---
+
+## Roles y permisos
+
+| Rol | Puede | No puede |
+|---|---|---|
+| **Estudiante** | Ver sus módulos, lecciones y retos; entregar intentos; consultar su progreso y sus medallas | Entrar al panel docente, ver datos de otros estudiantes, inscribir a terceros, activar el modo clase |
+| **Docente** | Crear grupos, ver los indicadores de **sus** grupos, abrir el detalle de cada estudiante, asignar módulos y previsualizar evaluaciones | Ver grupos ajenos, cambiar roles, alterar intentos o calificaciones |
+| **Administrador** | Alta y baja de cuentas y cambio de rol desde la base | — (sin interfaz todavía) |
+
+Nadie se registra por su cuenta: las cuentas las crea el docente con `npm run db:usuarios` y el
+estudiante inicia sesión con la que se le asigna. Los permisos se comprueban tres veces: en el
+`proxy`, en la capa de datos y en el RLS de Postgres.
+
+---
+
+## Tecnologías
+
+| Pieza | Para qué |
+|---|---|
+| **Next.js 16** (App Router) | Rutas, componentes y acciones de servidor, prerenderizado parcial |
+| **React 19** | Interfaz, con React Compiler activado |
+| **TypeScript 5** | Tipos de extremo a extremo; tipos generados desde Postgres |
+| **Supabase** (Auth + Postgres + RLS) | Sesión, datos y autorización por fila |
+| **Tailwind CSS 4** | Estilos; los tokens viven en `@theme` dentro de `globals.css` |
+| **CodeMirror 6** | Editor de código con resaltado de C |
+| **MDX** (`next-mdx-remote` 6) | Lecciones versionadas en el repositorio, no en la base |
+| **Zod 4** | Validación de las entradas de las acciones |
+| **Vitest 5 · Playwright 1.64 · axe-core** | Unitarias, extremo a extremo y accesibilidad |
+| **Vercel** | Despliegue continuo desde `main` |
+
+En una línea: el navegador pide páginas a Next, Next consulta Supabase con la sesión del usuario a
+través de la DAL, y Postgres aplica RLS. **El puntaje y la corrección se calculan solo en el
+servidor**; el navegador únicamente envía la respuesta.
+
+---
+
+## Los ocho módulos
+
+| # | Módulo | Contenido | Lecciones | Retos |
+|---|---|---|---|---|
+| 1 | Introducción a la informática y al computador | Hardware, software, instrucciones y memoria | 1 | 1 |
+| 2 | Algoritmos | Descomposición, pseudocódigo y diagramas de flujo | 1 | 1 |
+| 3 | De la idea al programa | Compilación frente a interpretación y anatomía de un «Hola Mundo» | 2 | 3 |
+| 4 | Variables, tipos de datos y operadores | Enteros, decimales, caracteres, booleanos y memoria | 1 | 1 |
+| 5 | Estructuras de control de flujo | Condicionales y ciclos | 1 | 3 |
+| 6 | Estructuras de datos básicas | Arreglos, listas e indexación | 1 | 3 |
+| 7 | Taller de retos | Ejercicios que combinan variables, control de flujo y arreglos | 1 | 3 |
+| 8 | Evaluación formativa final | Cuestionario de los ocho módulos | 1 | 1 |
+
+En total: **9 lecciones y 16 retos** (9 de selección múltiple, 3 de ordenamiento, 3 de
+autocompletado y 1 de código), más la **autoevaluación de cada módulo** (5 preguntas) y la
+**evaluación final** (15 preguntas, umbral del 70 %).
+
+---
+
 ## Qué puedes hacer hoy
 
 | Área | Qué funciona |
