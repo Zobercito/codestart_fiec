@@ -1,0 +1,101 @@
+# Estructuras de control de flujo
+
+> **Contenido provisional.** Este material sigue el esquema del curso, pero
+> todavía no ha sido revisado por el experto docente. Se marca como
+> provisional para no presentarlo como contenido validado.
+
+Hasta ahora los programas ejecutan todas sus instrucciones en orden. Las
+estructuras de control permiten dos cosas nuevas: **decidir** qué camino
+tomar y **repetir** un bloque de instrucciones.
+
+## Condicionales: elegir un camino
+
+La forma más simple es `if` / `else`:
+
+```c
+int edad = 20;
+
+if (edad >= 18) {
+    printf("Mayor de edad\n");
+} else {
+    printf("Menor de edad\n");
+}
+```
+
+La condición se evalúa una sola vez. Si es verdadera, se ejecuta el primer
+bloque; si es falsa, el bloque del `else`. El detalle que más errores causa
+es el límite: `>` deja fuera al valor 18, mientras que `>=` lo incluye.
+
+También se pueden encadenar decisiones con `else if`:
+
+```c
+if (nota >= 90) {
+    printf("Excelente\n");
+} else if (nota >= 70) {
+    printf("Aprobado\n");
+} else {
+    printf("Reprobado\n");
+}
+```
+
+El orden importa. Si se comprueba primero `nota >= 70`, una nota de 95
+también entra ahí y nunca llega a la rama de excelente.
+
+## Ciclos: repetir sin copiar
+
+Un ciclo `while` repite mientras la condición sea verdadera:
+
+```c
+int i = 1;
+while (i <= 5) {
+    printf("%d\n", i);
+    i = i + 1;
+}
+```
+
+Hay tres piezas que deben estar bien: el valor inicial, la condición y el
+cambio que acerca al final. Si se olvida `i = i + 1`, la condición nunca se
+vuelve falsa y el programa entra en un ciclo infinito.
+
+El ciclo `for` agrupa esas tres piezas:
+
+```c
+for (int i = 1; i <= 5; i = i + 1) {
+    printf("%d\n", i);
+}
+```
+
+Es equivalente al `while` anterior, pero deja a la vista el inicio, el fin y
+el paso. Para recorrer una cantidad conocida de elementos suele ser la
+opción más clara.
+
+## Cómo leer un ciclo sin ejecutarlo
+
+Para predecir la salida, haz una tabla con el valor de las variables en cada
+vuelta. Por ejemplo, para el `for` anterior:
+
+| Vuelta | `i` antes | ¿Entra? | Imprime | `i` después |
+|---|---:|---|---:|---:|
+| 1 | 1 | sí | 1 | 2 |
+| 2 | 2 | sí | 2 | 3 |
+| 3 | 3 | sí | 3 | 4 |
+| 4 | 4 | sí | 4 | 5 |
+| 5 | 5 | sí | 5 | 6 |
+| 6 | 6 | no | — | — |
+
+La tabla es más fiable que “leer de memoria”. Es también la base de los
+retos de ordenamiento: primero se identifican las piezas, después se ordena
+la secuencia.
+
+## Errores frecuentes
+
+- Usar `=` en una condición cuando se quería comparar con `==`.
+- Olvidar las llaves en un bloque de más de una instrucción.
+- No actualizar la variable del ciclo.
+- Confundir el límite: `i < 5` termina en 4, `i <= 5` termina en 5.
+
+## Para practicar
+
+1. Ordena los pasos de un ciclo `while` que imprime los números del 1 al 5.
+2. Completa un `if` que decide si una persona es mayor de edad.
+3. Predice cuántas veces se ejecuta un ciclo antes de mirar la respuesta.

@@ -26,6 +26,8 @@ export type Perfil = {
   nombre: string;
   correo: string;
   rol: Rol;
+  acepta_privacidad: boolean;
+  fecha_aceptacion: string | null;
 };
 
 /** El perfil del usuario de la sesion, o null si no hay sesion. */
@@ -39,7 +41,7 @@ export const obtenerMiPerfil = cache(async (): Promise<Perfil | null> => {
 
   const { data } = await supabase
     .from("perfiles")
-    .select("id, nombre, correo, rol")
+    .select("id, nombre, correo, rol, acepta_privacidad, fecha_aceptacion")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -87,75 +89,52 @@ export async function obtenerMiGrupo(perfil: Perfil) {
 export async function obtenerRutaDeModulos(perfil: Perfil) {
   const supabase = await crearClienteSupabase();
 
-  const [{ data: modulos }, { data: progresos }] = await Promise.all([
-    supabase.from("modulos").select("*").order("orden"),
-    supabase
-      .from("progresos")
-      .select("estado, leccion:lecciones(modulo_id, orden)")
-      .eq("usuario_id", perfil.id),
-  ]);
+  const [{ data: modulos }, { data: lecciones }, { data: progresos }] =
+    await Promise.all([
+      supabase.from("modulos").select("*").order("orden"),
+      supabase.from("lecciones").select("id, modulo_id"),
+      supabase
+        .from("progresos")
+        .select("leccion_id, estado")
+        .eq("usuario_id", perfil.id),
+    ]);
 
-  // Un modulo esta completado si todas sus lecciones lo estan.
-  const porModulo = new Map<
-    string,
-    { total: number; completadas: number; enProgreso: boolean }
-  >();
-  for (const p of progresos ?? []) {
-    const leccion = Array.isArray(p.leccion) ? p.leccion[0] : p.leccion;
-    if (!leccion) continue;
-    const actual = porModulo.get(leccion.modulo_id) ?? {
-      total: 0,
-      completadas: 0,
-      enProgreso: false,
-    };
-    actual.total += 1;
-    if (p.estado === "completado") actual.completadas += 1;
-    if (p.estado === "en_progreso") actual.enProgreso = true;
-    porModulo.set(leccion.modulo_id, actual);
+  // El total sale de las lecciones reales, no de las filas de progreso:
+  // un módulo con dos lecciones y una vista debe dar 50 %, no 100 %.
+  const totalPorModulo = new Map<string, number>();
+  for (const leccion of lecciones ?? []) {
+    totalPorModulo.set(
+      leccion.modulo_id,
+      (totalPorModulo.get(leccion.modulo_id) ?? 0) + 1,
+    );
   }
 
-  return (modulos ?? []).map((m) => {
-    const conteo = porModulo.get(m.id) ?? { total: 0, completadas: 0, enProgreso: false };
-    return { ...m, ...conteo };
-  });
-}
+  const progresoPorLeccion = new Map(
+    (progresos ?? []).map((p) => [p.leccion_id, p.estado as string]),
+  );
 
-/**
- * Calcula el estado de cada modulo en la secuencia del curso.
- *
- * Los modulos se abren de uno en uno: un modulo esta bloqueado si el
- * anterior no esta completo. El estado sale del progreso real, no de
- * un campo guardado, para que no pueda quedar desincronizado.
- */
-export function calcularEstadosModulos<
-  M extends { orden: number; total: number; completadas: number; enProgreso: boolean },
->(modulos: M[]) {
-  let anteriorCompletado = true;
-  const conEstado: (M & {
-    estado: "completado" | "en_progreso" | "pendiente" | "bloqueado";
-  })[] = [];
+  const completadasPorModulo = new Map<string, number>();
+  const enProgresoPorModulo = new Map<string, boolean>();
 
-  for (const m of modulos) {
-    const completadas = m.completadas;
-    const total = m.total;
-
-    let estado: "completado" | "en_progreso" | "pendiente" | "bloqueado";
-    if (total > 0 && completadas === total) {
-      estado = "completado";
-    } else if (m.enProgreso || completadas > 0) {
-      estado = "en_progreso";
-    } else {
-      estado = anteriorCompletado ? "pendiente" : "bloqueado";
+  for (const leccion of lecciones ?? []) {
+    const estado = progresoPorLeccion.get(leccion.id);
+    if (estado === "completado") {
+      completadasPorModulo.set(
+        leccion.modulo_id,
+        (completadasPorModulo.get(leccion.modulo_id) ?? 0) + 1,
+      );
     }
-
-    if (estado !== "completado") anteriorCompletado = false;
-    conEstado.push({ ...m, estado });
+    if (estado === "en_progreso") {
+      enProgresoPorModulo.set(leccion.modulo_id, true);
+    }
   }
 
-  return {
-    modulos: conEstado,
-    moduloEnCurso: conEstado.find((m) => m.estado === "en_progreso") ?? null,
-  };
+  return (modulos ?? []).map((m) => ({
+    ...m,
+    total: totalPorModulo.get(m.id) ?? 0,
+    completadas: completadasPorModulo.get(m.id) ?? 0,
+    enProgreso: enProgresoPorModulo.get(m.id) ?? false,
+  }));
 }
 
 /** La asignacion vigente del grupo, con su fecha de entrega. */
@@ -166,9 +145,11 @@ export async function obtenerMiTarea(perfil: Perfil) {
 
   const { data } = await supabase
     .from("asignaciones")
-    .select("id, descripcion, fecha_entrega, modulo:modulos(titulo, orden)")
+    .select(
+      "id, descripcion, fecha_entrega, creado_en, modulo:modulos(titulo, orden), reto:retos(id, enunciado)",
+    )
     .eq("grupo_id", grupo.id)
-    .order("fecha_entrega", { ascending: true })
+    .order("creado_en", { ascending: false })
     .limit(1)
     .maybeSingle();
 

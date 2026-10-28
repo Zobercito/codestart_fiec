@@ -7,7 +7,7 @@ import { test, expect, type Page } from "@playwright/test";
  * Las cuentas las crea `npm run db:usuarios`.
  */
 
-const CORREO = "julieth.rojas@up.ac.pa";
+const CORREO = "francisco.gonzalez@up.ac.pa";
 const CLAVE = "Codestart2026!";
 
 /** El reto de codigo: el que el motor de validacion sabe comprobar. */

@@ -17,7 +17,7 @@ export type Rol = "estudiante" | "docente" | "admin";
 export const ROLES: readonly Rol[] = ["estudiante", "docente", "admin"];
 
 /** Rutas accesibles sin iniciar sesion. */
-export const RUTAS_PUBLICAS = ["/", "/login", "/registro"];
+export const RUTAS_PUBLICAS = ["/", "/login", "/privacidad"];
 
 /** Prefijos de ruta que solo puede usar un docente (o un admin). */
 export const PREFIJOS_DE_DOCENTE = ["/docente"];
@@ -25,8 +25,25 @@ export const PREFIJOS_DE_DOCENTE = ["/docente"];
 /** Prefijos de ruta que solo puede usar un admin. */
 export const PREFIJOS_DE_ADMIN = ["/admin"];
 
+/**
+ * La pantalla de inicio de cada rol. El docente administra el curso
+ * desde su panel; el estudiante, desde su dashboard de progreso.
+ */
+export function rutaDeInicio(rol: Rol | null): string {
+  return rol === "docente" || rol === "admin" ? "/docente" : "/dashboard";
+}
+
 export function esRutaPublica(ruta: string): boolean {
   return RUTAS_PUBLICAS.some((p) => ruta === p || ruta.startsWith(`${p}/`));
+}
+
+/**
+ * Si el rol puede abrir la vista de clase. El docente y el admin pueden
+ * previsualizar retos y evaluaciones sin entregar; el estudiante no.
+ * Es una ayuda de interfaz: la autorización real sigue en la DAL.
+ */
+export function puedeModoClase(rol: Rol | null): boolean {
+  return rol === "docente" || rol === "admin";
 }
 
 /**

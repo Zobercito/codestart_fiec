@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
 import { entrar } from "@/lib/auth/acciones";
 import { Campo } from "@/components/ui/campo";
 
@@ -47,13 +46,6 @@ export function FormularioAcceso() {
       >
         {pendiente ? "Entrando…" : "Entrar"}
       </button>
-
-      <p className="text-center text-[12.5px] text-slate-600">
-        ¿Todavía no tienes cuenta?{" "}
-        <Link href="/registro" className="font-semibold text-fiec-700 underline decoration-fiec-300 underline-offset-4">
-          Regístrate
-        </Link>
-      </p>
     </form>
   );
 }

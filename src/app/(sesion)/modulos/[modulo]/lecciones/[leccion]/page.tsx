@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ContenidoMDX } from "@/lib/contenido/mdx";
 import { obtenerLeccion } from "@/lib/contenido/leccion";
-import { obtenerMiPerfil } from "@/lib/auth/dal";
+import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
+import { BotonVista } from "@/components/leccion/boton-vista";
+import { RegistrarApertura } from "@/components/leccion/registrar-apertura";
 
 /**
  * Vista de una leccion.
@@ -20,13 +23,43 @@ export default async function PaginaLeccion({
   const perfil = await obtenerMiPerfil();
   if (!perfil) notFound();
 
-  const datos = await obtenerLeccion(perfil, Number(modulo), Number(leccion));
+  // La lección y la ruta de módulos solo dependen del perfil: se piden a
+  // la vez para no sumar un viaje más a la base (RNF02).
+  const [datos, rutaBase] = await Promise.all([
+    obtenerLeccion(perfil, Number(modulo), Number(leccion)),
+    perfil.rol === "estudiante"
+      ? obtenerRutaDeModulos(perfil)
+      : Promise.resolve(null),
+  ]);
   if (!datos) notFound();
+
+  // Un estudiante no puede abrir por URL un módulo que todavía está
+  // bloqueado. Los docentes sí pueden previsualizar cualquier módulo.
+  if (perfil.rol === "estudiante" && rutaBase) {
+    const { modulos, moduloEnCurso } = calcularEstadosModulos(rutaBase);
+    const estadoModulo = modulos.find((m) => m.id === datos.modulo.id)?.estado;
+
+    if (estadoModulo === "bloqueado") {
+      redirect(moduloEnCurso ? `/modulos/${moduloEnCurso.orden}` : "/modulos");
+    }
+  }
 
   const { leccion: l, modulo: m, contenido, anterior, siguiente, estado, retos } = datos;
 
+  const destino = siguiente
+    ? `/modulos/${m.orden}/lecciones/${siguiente.orden}`
+    : retos.length > 0
+      ? `/retos/${retos[0].id}`
+      : "/dashboard";
+  const completado = estado === "completado";
+
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6">
+      <RegistrarApertura
+        leccionId={l.id}
+        activo={perfil.rol === "estudiante" && !completado}
+      />
+
       {/* Migas de pan */}
       <nav className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-slate-600">
         <Link href="/modulos" className="font-semibold text-fiec-700 hover:underline">
@@ -142,6 +175,23 @@ export default async function PaginaLeccion({
               </ul>
             </section>
           ) : null}
+
+          <section className="mt-8 rounded-2xl bg-fiec-50 p-5 ring-1 ring-fiec-200">
+            <h2 className="text-sm font-extrabold text-fiec-900">
+              {completado ? "Lección completada" : "¿Terminaste la lección?"}
+            </h2>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-fiec-900">
+              {completado
+                ? "Tu progreso ya está guardado. Puedes continuar con lo que sigue."
+                : "Marca la lección como vista para guardar tu avance y desbloquear lo que sigue."}
+            </p>
+            <BotonVista
+              leccionId={l.id}
+              destino={destino}
+              completado={completado}
+              className="mt-4 max-w-md"
+            />
+          </section>
         </div>
 
         {/* Panel lateral: el temario del modulo */}

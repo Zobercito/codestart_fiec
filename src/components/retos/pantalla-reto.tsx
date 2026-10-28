@@ -44,6 +44,7 @@ export type DatosReto = {
     moduloOrden: number;
   };
   fragmento: string;
+  modoClase?: boolean;
 };
 
 type RespuestaVerificacion = {
@@ -53,11 +54,12 @@ type RespuestaVerificacion = {
   intentos?: number;
   intentosRestantes?: number;
   intentosMaximos?: number;
+  puntuable?: boolean;
   error?: string;
 };
 
 export function PantallaReto({ datos }: { datos: DatosReto }) {
-  const { reto, borrador, intentosHechos, leccion, fragmento } = datos;
+  const { reto, borrador, intentosHechos, leccion, fragmento, modoClase = false } = datos;
 
   const [codigo, setCodigo] = useState(borrador?.codigo || reto.codigoInicial);
   const [pistasUsadas, setPistasUsadas] = useState(borrador?.pistas_usadas ?? 0);
@@ -170,6 +172,11 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
         <h1 className="mt-3 text-base font-extrabold leading-snug text-slate-900">
           {reto.enunciado}
         </h1>
+        {modoClase ? (
+          <p className="mt-2 rounded-lg bg-up-50 px-2.5 py-1.5 text-[10.5px] font-semibold text-up-900 ring-1 ring-up-200">
+            Modo clase: pistas y soluciones ocultas.
+          </p>
+        ) : null}
         {reto.enunciado_detalle ? (
           <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">{reto.enunciado_detalle}</p>
         ) : null}
@@ -234,37 +241,39 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
         </section>
 
         {/* Pistas */}
-        <section className="mt-5">
-          <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
-            Pistas
-          </h2>
-          <div className="mt-2 space-y-2">
-            {pistasReveladas.map((pista) => (
-              <div
-                key={pista.nivel}
-                className="rounded-xl bg-up-50 p-3 text-[11.5px] leading-relaxed text-up-900 ring-1 ring-up-200"
-              >
-                <span className="font-extrabold">Pista {pista.nivel}</span>
-                <p className="mt-1">{pista.texto}</p>
-              </div>
-            ))}
+        {!modoClase ? (
+          <section className="mt-5">
+            <h2 className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+              Pistas
+            </h2>
+            <div className="mt-2 space-y-2">
+              {pistasReveladas.map((pista) => (
+                <div
+                  key={pista.nivel}
+                  className="rounded-xl bg-up-50 p-3 text-[11.5px] leading-relaxed text-up-900 ring-1 ring-up-200"
+                >
+                  <span className="font-extrabold">Pista {pista.nivel}</span>
+                  <p className="mt-1">{pista.texto}</p>
+                </div>
+              ))}
 
-            {pistasUsadas < reto.pistas.length ? (
-              <button
-                type="button"
-                onClick={pedirPista}
-                className="w-full rounded-xl border-2 border-dashed border-slate-300 bg-white px-3 py-2.5 text-left transition hover:border-up-400 hover:bg-up-50"
-              >
-                <span className="text-[11.5px] font-extrabold text-slate-700">
-                  🔒 Pista {pistasUsadas + 1} · Revelar
-                </span>
-                <span className="mt-0.5 block text-[10.5px] text-slate-600">
-                  −10 pts
-                </span>
-              </button>
-            ) : null}
-          </div>
-        </section>
+              {pistasUsadas < reto.pistas.length ? (
+                <button
+                  type="button"
+                  onClick={pedirPista}
+                  className="w-full rounded-xl border-2 border-dashed border-slate-300 bg-white px-3 py-2.5 text-left transition hover:border-up-400 hover:bg-up-50"
+                >
+                  <span className="text-[11.5px] font-extrabold text-slate-700">
+                    🔒 Pista {pistasUsadas + 1} · Revelar
+                  </span>
+                  <span className="mt-0.5 block text-[10.5px] text-slate-600">
+                    −10 pts
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
       </aside>
 
       {/* ══ Centro: editor y resultado ══ */}
@@ -390,12 +399,15 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
             </button>
             {respuesta?.acierto ? (
               <span className="ml-2 rounded-md bg-coder-500 px-2 py-0.5 text-[10px] font-extrabold text-slate-900">
-                ✓ Aprobado · +{respuesta.puntos} pts
+                ✓ Aprobado
+                {respuesta.puntuable === false
+                  ? " · sin puntos, cuenta como práctica"
+                  : ` · +${respuesta.puntos} pts`}
               </span>
             ) : null}
-            {respuesta && !respuesta.acierto && respuesta.intentosRestantes === 0 ? (
+            {respuesta && respuesta.puntuable === false ? (
               <span className="ml-2 rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-extrabold text-slate-950">
-                Se acabaron los intentos
+                Intentos agotados · sigues practicando
               </span>
             ) : null}
           </div>

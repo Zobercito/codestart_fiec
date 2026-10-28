@@ -28,12 +28,37 @@ export function Navbar({ perfil }: { perfil: Perfil }) {
             >
               Módulos
             </Link>
-            <Link
-              href="/dashboard#tareas"
-              className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
-            >
-              Mis tareas
-            </Link>
+            {perfil.rol === "estudiante" ? (
+              <>
+                <Link
+                  href="/dashboard#tareas"
+                  className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
+                >
+                  Mis tareas
+                </Link>
+                <Link
+                  href="/medallas"
+                  className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
+                >
+                  Mis medallas
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/docente/grupos"
+                  className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
+                >
+                  Grupos
+                </Link>
+                <Link
+                  href="/docente/asignar"
+                  className="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-white hover:text-slate-800"
+                >
+                  Asignar
+                </Link>
+              </>
+            )}
           </div>
 
           {perfil.rol !== "estudiante" ? (

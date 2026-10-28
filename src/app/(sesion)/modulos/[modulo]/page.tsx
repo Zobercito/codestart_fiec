@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { obtenerMiPerfil } from "@/lib/auth/dal";
-import { obtenerRutaDeModulos, calcularEstadosModulos } from "@/lib/auth/dal";
+import { notFound, redirect } from "next/navigation";
+import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import {
+  obtenerEvaluacionDeModulo,
+  obtenerEvaluacionFinal,
+} from "@/lib/evaluacion/dal";
 
 /** Lecciones de un modulo, con el estado de cada una. */
 export const instant = false;
@@ -17,31 +21,48 @@ export default async function PaginaModulo({
 
   const supabase = await crearClienteSupabase();
 
-  const { data: modulo } = await supabase
-    .from("modulos")
-    .select("id, titulo, orden, descripcion")
-    .eq("orden", Number(ordenModulo))
-    .maybeSingle();
+  // La ruta de módulos no depende del módulo pedido: se consultan a la
+  // vez para no encadenar viajes a la base (RNF02).
+  const [{ data: modulo }, rutaBase] = await Promise.all([
+    supabase
+      .from("modulos")
+      .select("id, titulo, orden, descripcion")
+      .eq("orden", Number(ordenModulo))
+      .maybeSingle(),
+    obtenerRutaDeModulos(perfil),
+  ]);
 
   if (!modulo) notFound();
 
-  const { data: lecciones } = await supabase
-    .from("lecciones")
-    .select("id, titulo, orden, duracion_min")
-    .eq("modulo_id", modulo.id)
-    .order("orden");
-
-  const { data: progresos } = await supabase
-    .from("progresos")
-    .select("leccion_id, estado")
-    .eq("usuario_id", perfil.id);
+  const [{ data: lecciones }, { data: progresos }, evaluacion] = await Promise.all([
+    supabase
+      .from("lecciones")
+      .select("id, titulo, orden, duracion_min")
+      .eq("modulo_id", modulo.id)
+      .order("orden"),
+    supabase
+      .from("progresos")
+      .select("leccion_id, estado")
+      .eq("usuario_id", perfil.id),
+    modulo.orden <= 7
+      ? obtenerEvaluacionDeModulo(modulo.orden)
+      : obtenerEvaluacionFinal(),
+  ]);
 
   const estadoDe = new Map(
     (progresos ?? []).map((p) => [p.leccion_id, p.estado as string]),
   );
 
-  const { modulos: ruta } = calcularEstadosModulos(await obtenerRutaDeModulos(perfil));
-  const enCurso = ruta.find((m) => m.estado === "en_progreso");
+  const { modulos: ruta, moduloEnCurso } = calcularEstadosModulos(rutaBase);
+  const estadoModulo = ruta.find((m) => m.id === modulo.id)?.estado;
+
+  if (perfil.rol === "estudiante" && estadoModulo === "bloqueado") {
+    redirect(moduloEnCurso ? `/modulos/${moduloEnCurso.orden}` : "/modulos");
+  }
+
+  const enCurso = moduloEnCurso;
+  const rutaEvaluacion =
+    modulo.orden <= 7 ? `/evaluacion/${modulo.orden}` : "/evaluacion/final";
 
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6">
@@ -99,6 +120,34 @@ export default async function PaginaModulo({
           );
         })}
       </div>
+
+      {evaluacion ? (
+        <section className="mt-6 rounded-2xl border border-fiec-200 bg-fiec-50/70 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-fiec-600 text-lg text-white">
+              <span aria-hidden="true">📝</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-extrabold uppercase tracking-wider text-fiec-700">
+                {modulo.orden <= 7 ? "Autoevaluación" : "Evaluación final"}
+              </div>
+              <h2 className="mt-0.5 text-sm font-extrabold text-slate-900">
+                {evaluacion.titulo}
+              </h2>
+              <p className="mt-0.5 text-[12px] text-slate-700">
+                {evaluacion.preguntas.length} preguntas ·{" "}
+                {evaluacion.umbral} % para aprobar
+              </p>
+            </div>
+            <Link
+              href={rutaEvaluacion}
+              className="rounded-xl bg-fiec-600 px-4 py-2 text-[12px] font-bold text-white transition hover:bg-fiec-700"
+            >
+              {modulo.orden <= 7 ? "Empezar autoevaluación" : "Empezar evaluación final"}
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       {enCurso && enCurso.orden !== modulo.orden ? (
         <p className="mt-6 rounded-2xl bg-fiec-50 p-4 text-[12.5px] text-fiec-900 ring-1 ring-fiec-200">

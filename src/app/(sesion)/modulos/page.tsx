@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  calcularEstadosModulos,
-  obtenerMiPerfil,
-  obtenerRutaDeModulos,
-} from "@/lib/auth/dal";
+import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
 import { IconoModulo } from "@/components/modulos/icono-modulo";
 
 /** La ruta de los 8 modulos del curso. */
@@ -12,6 +9,7 @@ export default async function PaginaModulos() {
   const perfil = await obtenerMiPerfil();
   if (!perfil) notFound();
 
+  const esEstudiante = perfil.rol === "estudiante";
   const { modulos } = calcularEstadosModulos(await obtenerRutaDeModulos(perfil));
 
   return (
@@ -26,12 +24,17 @@ export default async function PaginaModulos() {
         El curso está organizado en ocho módulos que se abren en orden. Cada uno combina una
         explicación, una actividad interactiva y una autoevaluación.
       </p>
+      {!esEstudiante ? (
+        <p className="mt-2 max-w-2xl text-[12.5px] leading-relaxed text-fiec-700">
+          Vista previa del docente: puedes abrir cualquier módulo sin completar los anteriores.
+        </p>
+      ) : null}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {modulos.map((m) => {
           const completado = m.estado === "completado";
           const enCurso = m.estado === "en_progreso";
-          const bloqueado = m.estado === "bloqueado";
+          const bloqueado = esEstudiante && m.estado === "bloqueado";
 
           return (
             <Link

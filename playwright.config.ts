@@ -49,6 +49,16 @@ export default defineConfig({
         isMobile: false,
       },
     },
+    {
+      // Compatibilidad: Firefox de escritorio. WebKit no se puede
+      // ejecutar en este host porque faltan dependencias del sistema;
+      // se documenta como pendiente en el informe de pruebas.
+      name: "firefox-escritorio",
+      use: {
+        ...devices["Desktop Firefox"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
   ],
 
   webServer: {

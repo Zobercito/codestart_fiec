@@ -23,7 +23,7 @@
 import { chromium } from "playwright";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const CORREO = process.env.AUDITORIA_CORREO ?? "julieth.rojas@up.ac.pa";
+const CORREO = process.env.AUDITORIA_CORREO ?? "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.AUDITORIA_CLAVE ?? "Codestart2026!";
 
 const RUTAS = [

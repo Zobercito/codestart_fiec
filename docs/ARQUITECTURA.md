@@ -47,11 +47,13 @@ cliente, el estudiante podría pedir pistas y no pagar los 10 puntos.
 - **PostgreSQL en Supabase**, con RLS activo en las 11 tablas (26 políticas).
 - Las funciones de apoyo (`es_admin`, `es_docente_de`, `es_miembro_de`) se usan dentro de las
   políticas, para que la autorización no dependa de que la vista la compruebe.
-- **Trigger `trg_proteger_campos_perfil`**: bloquea que alguien sepromueva a sí mismo el campo
-  `rol` de su perfil. El rol lo pone el trigger de registro, no el cliente.
-- **Autenticación**: Supabase Auth por correo. El acceso lo controla `src/proxy.ts` (en Next 16
-  `middleware.ts` ya no existe), pero la comprobación de verdad está en la DAL
-  (`src/lib/auth/dal.ts`): una ruta nunca confía en que otra ya filtró.
+- **Trigger `trg_proteger_campos_perfil`**: bloquea que alguien se promueva a sí mismo el campo
+  `rol` de su perfil. El rol lo asigna el docente o el administrador con `service_role`; el
+  cliente nunca lo escribe.
+- **Autenticación**: Supabase Auth por correo, solo con inicio de sesión. No hay registro
+  público: las cuentas las crea el docente con `scripts/crear-usuarios.mjs`. El acceso lo
+  controla `src/proxy.ts` (en Next 16 `middleware.ts` ya no existe), pero la comprobación de
+  verdad está en la DAL (`src/lib/auth/dal.ts`): una ruta nunca confía en que otra ya filtró.
 
 ---
 

@@ -37,18 +37,14 @@ from public.perfiles p
 where p.correo = 'docente@up.ac.pa';
 
 -- ── Inscripciones de los estudiantes ────────────────────────────
+-- Todos los estudiantes creados quedan en el grupo del docente: sus
+-- avances e intentos son los que alimentan el panel de seguimiento.
 insert into public.inscripciones (usuario_id, grupo_id)
 select p.id, g.id
 from public.perfiles p
 cross join public.grupos g
 where g.codigo_inscripcion = 'FIEC-V26-8QK4'
-  and p.correo in (
-    'julieth.rojas@up.ac.pa',
-    'luis.martinez@up.ac.pa',
-    'camila.rios@up.ac.pa',
-    'andres.perez@up.ac.pa',
-    'sofia.bernal@up.ac.pa'
-  );
+  and p.rol = 'estudiante';
 
 -- ── Los 8 modulos del curso (seccion 8 del Avance 1) ───────────
 insert into public.modulos (titulo, orden, descripcion, archivo_contenido) values
@@ -183,10 +179,7 @@ select p.id, l.id, 'completado', timestamptz '2026-07-12 15:00:00+00'
 from public.perfiles p
 cross join public.lecciones l
 join public.modulos m on m.id = l.modulo_id
-where p.correo in (
-  'julieth.rojas@up.ac.pa', 'luis.martinez@up.ac.pa',
-  'camila.rios@up.ac.pa', 'andres.perez@up.ac.pa'
-) and m.orden <= 3;
+where p.correo = 'francisco.gonzalez@up.ac.pa' and m.orden <= 3;
 
 -- El modulo 4 en curso: una leccion a medias.
 insert into public.progresos (usuario_id, leccion_id, estado, fecha)
@@ -194,11 +187,11 @@ select p.id, l.id, 'en_progreso', timestamptz '2026-07-16 18:30:00+00'
 from public.perfiles p
 cross join public.lecciones l
 join public.modulos m on m.id = l.modulo_id
-where p.correo = 'julieth.rojas@up.ac.pa' and m.orden = 4;
+where p.correo = 'francisco.gonzalez@up.ac.pa' and m.orden = 4;
 
 
 -- ── Intentos: el origen del analisis de errores (RF15) ──────────
--- Julieth falló el condicional por usar > en vez de >=: es el patron
+-- Francisco falló el condicional por usar > en vez de >=: es el patron
 -- de error que el panel docente muestra como dominante.
 insert into public.intentos (
   usuario_id, reto_id, respuesta, codigo_enviado, resultado,
@@ -228,9 +221,9 @@ int main() {
 from public.perfiles p
 cross join public.retos r
 join public.lecciones l on l.id = r.leccion_id
-where p.correo = 'julieth.rojas@up.ac.pa' and r.tipo = 'codigo';
+where p.correo = 'francisco.gonzalez@up.ac.pa' and r.tipo = 'codigo';
 
--- Luis y Sofia fallaron tambien: mismo error, patron dominante del grupo.
+-- Francisco repitió el reto y volvió a fallar: el error se repite.
 insert into public.intentos (
   usuario_id, reto_id, respuesta, codigo_enviado, resultado,
   error_detectado, acierto, puntos_obtenidos, fecha
@@ -256,9 +249,9 @@ select p.id, r.id, 'a', $$int main() {
   false, 0, timestamptz '2026-07-16 16:05:00+00'
 from public.perfiles p
 cross join public.retos r
-where p.correo in ('luis.martinez@up.ac.pa', 'sofia.bernal@up.ac.pa') and r.tipo = 'codigo';
+where p.correo = 'francisco.gonzalez@up.ac.pa' and r.tipo = 'codigo';
 
--- Camila y Andres lo resolvieron bien.
+-- En un intento posterior lo resolvió bien.
 insert into public.intentos (
   usuario_id, reto_id, respuesta, codigo_enviado, resultado,
   error_detectado, acierto, puntos_obtenidos, fecha
@@ -283,15 +276,14 @@ select p.id, r.id, 'a', $$int main() {
   true, 100, timestamptz '2026-07-15 19:20:00+00'
 from public.perfiles p
 cross join public.retos r
-where p.correo in ('camila.rios@up.ac.pa', 'andres.perez@up.ac.pa') and r.tipo = 'codigo';
+where p.correo = 'francisco.gonzalez@up.ac.pa' and r.tipo = 'codigo';
 
--- ── Insignias del muro de progreso ─────────────────────────────
-insert into public.insignias (usuario_id, tipo, descripcion)
-select p.id, v.tipo, v.descripcion
-from public.perfiles p
-join (values
-  ('Primer paso',       'Completaste el módulo 1'),
-  ('Sin errores',       '5 retos superados al primer intento'),
-  ('Racha 5 días',      'Cinco días seguidos con actividad')
-) as v(tipo, descripcion) on true
-where p.correo = 'julieth.rojas@up.ac.pa';
+-- ── Insignias ──────────────────────────────────────────────────
+-- No se insertan a mano: los triggers del A4 las otorgan al completar
+-- lecciones (modulo_1..8 y curso) y al aprobar el primer reto
+-- (primer_reto). El seed limpia la tabla antes de insertar el progreso,
+-- así que el resultado es reproducible.
+
+-- ── Contenido provisional de los módulos 5–8 y evaluaciones ─────
+-- Se comparte con la migración idempotente para no duplicar el SQL.
+\ir migrations/20261030120000_a4_contenido_beta.sql

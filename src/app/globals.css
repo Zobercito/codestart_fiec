@@ -232,3 +232,27 @@ button:not(:disabled),
     box-shadow: inset 3px 0 0 #F5B014;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESIBILIDAD (RNF06 · WCAG 2.1 AA)
+   Foco visible propio (2.4.7) y respeto por el movimiento reducido
+   (2.3.3 / 2.2.2) en toda la interfaz.
+   ═══════════════════════════════════════════════════════════════ */
+@layer base {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-fiec-700);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

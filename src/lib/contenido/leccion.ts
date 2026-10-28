@@ -65,19 +65,19 @@ export const obtenerLeccion = cache(
     const anterior = indice > 0 ? lista[indice - 1] : null;
     const siguiente = indice < lista.length - 1 ? lista[indice + 1] : null;
 
-    const { data: progreso } = await supabase
-      .from("progresos")
-      .select("estado")
-      .eq("usuario_id", perfil.id)
-      .eq("leccion_id", leccion.id)
-      .maybeSingle();
-
-    // Los retos de la leccion: son el destino del boton «Ir al reto».
-    const { data: retos } = await supabase
-      .from("retos")
-      .select("id, enunciado, tipo")
-      .eq("leccion_id", leccion.id)
-      .order("orden");
+    const [{ data: progreso }, { data: retos }] = await Promise.all([
+      supabase
+        .from("progresos")
+        .select("estado")
+        .eq("usuario_id", perfil.id)
+        .eq("leccion_id", leccion.id)
+        .maybeSingle(),
+      supabase
+        .from("retos")
+        .select("id, enunciado, tipo")
+        .eq("leccion_id", leccion.id)
+        .order("orden"),
+    ]);
 
     return {
       leccion: {

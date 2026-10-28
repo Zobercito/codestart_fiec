@@ -1,13 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { IconoModulo } from "@/components/modulos/icono-modulo";
 import { formatearFecha } from "@/lib/fechas";
 import {
-  calcularEstadosModulos,
   obtenerMiGrupo,
   obtenerMiPerfil,
   obtenerMiTarea,
   obtenerRutaDeModulos,
 } from "@/lib/auth/dal";
+import { aceptarPrivacidad } from "@/lib/auth/acciones";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
+import { FormularioUnirse } from "@/components/grupos/formulario-unirse";
 
 /**
  * Dashboard del estudiante: la pantalla A del mockup del Avance 2, con
@@ -16,6 +19,10 @@ import {
 export default async function PaginaDashboard() {
   const perfil = await obtenerMiPerfil();
   if (!perfil) return null;
+
+  // El dashboard mide el avance de un estudiante. Un docente que llegue
+  // aqui por una URL directa vuelve a su panel.
+  if (perfil.rol !== "estudiante") redirect("/docente");
 
   const [grupo, ruta, tarea] = await Promise.all([
     obtenerMiGrupo(perfil),
@@ -28,8 +35,66 @@ export default async function PaginaDashboard() {
   const porcentaje = Math.round((completados / Math.max(modulos.length, 1)) * 100);
   const enProgreso = moduloEnCurso;
 
+  const destinoTarea = tarea?.modulo
+    ? `Módulo ${tarea.modulo.orden}: ${tarea.modulo.titulo}`
+    : tarea?.reto
+      ? `Reto: ${tarea.reto.enunciado}`
+      : "Actividad asignada";
+  const enlaceTarea = tarea?.modulo
+    ? `/modulos/${tarea.modulo.orden}`
+    : tarea?.reto
+      ? `/retos/${tarea.reto.id}`
+      : "/modulos";
+
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6">
+      {!perfil.acepta_privacidad ? (
+        <section className="mb-5 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5">
+          <h2 className="text-sm font-extrabold text-slate-900">
+            Acepta el aviso de privacidad
+          </h2>
+          <p className="mt-1 max-w-3xl text-[12.5px] leading-relaxed text-slate-700">
+            Antes de seguir usando la plataforma, revisa cómo tratamos tus datos personales. Puedes
+            leer el{" "}
+            <Link
+              href="/privacidad"
+              className="font-semibold text-fiec-700 underline decoration-fiec-300 underline-offset-4"
+            >
+              aviso de privacidad
+            </Link>
+            .
+          </p>
+          <form action={aceptarPrivacidad} className="mt-3">
+            <button
+              type="submit"
+              className="rounded-xl bg-fiec-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-fiec-700"
+            >
+              Acepto el aviso de privacidad
+            </button>
+          </form>
+        </section>
+      ) : null}
+
+      {!grupo ? (
+        <section className="mb-5 rounded-2xl border border-fiec-200 bg-fiec-50/70 p-4 sm:p-5">
+          <div className="grid gap-4 md:grid-cols-2 md:items-center">
+            <div>
+              <h2 className="text-sm font-extrabold text-slate-900">
+                Únete a tu grupo
+              </h2>
+              <p className="mt-1 max-w-xl text-[12.5px] leading-relaxed text-slate-700">
+                Pide a tu docente el código de inscripción del grupo. Con él
+                verás las tareas asignadas y el panel del curso quedará
+                vinculado a tu sección.
+              </p>
+            </div>
+            <div className="md:justify-self-end md:w-full md:max-w-sm">
+              <FormularioUnirse />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <p className="text-xs font-bold uppercase tracking-wider text-fiec-600">
@@ -112,8 +177,13 @@ export default async function PaginaDashboard() {
                 Tarea asignada por el docente
               </div>
               <div className="mt-0.5 text-sm font-bold text-slate-800">
-                {tarea.descripcion ?? "Módulo completo + autoevaluación"}
+                {destinoTarea}
               </div>
+              {tarea.descripcion ? (
+                <p className="mt-0.5 text-[12px] leading-relaxed text-slate-700">
+                  {tarea.descripcion}
+                </p>
+              ) : null}
               <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
                 <span>
                   <span aria-hidden="true">📅</span> Entrega:{" "}
@@ -121,6 +191,12 @@ export default async function PaginaDashboard() {
                     {formatearFecha(tarea.fecha_entrega)}
                   </strong>
                 </span>
+                <Link
+                  href={enlaceTarea}
+                  className="font-bold text-fiec-700 underline decoration-fiec-300 underline-offset-4 hover:text-fiec-800"
+                >
+                  Ir a la tarea →
+                </Link>
               </div>
             </div>
           </div>
@@ -128,11 +204,19 @@ export default async function PaginaDashboard() {
       ) : null}
 
       {/* Ruta de modulos (RF02) */}
-      <div className="mt-7 flex items-end justify-between">
+      <div className="mt-7 flex flex-wrap items-end justify-between gap-2">
         <h2 className="text-lg font-extrabold tracking-tight text-slate-900">Ruta de módulos</h2>
-        <span className="text-xs font-medium text-slate-500">
-          Contenido del propedéutico · {modulos.length} módulos
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium text-slate-500">
+            Contenido del propedéutico · {modulos.length} módulos
+          </span>
+          <Link
+            href="/medallas"
+            className="text-xs font-bold text-fiec-700 underline decoration-fiec-300 underline-offset-4 hover:text-fiec-800"
+          >
+            Mis medallas →
+          </Link>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -196,14 +196,14 @@ isOneToOne: false
                   ]
                 },"perfiles": {
                   Row: {
-                    "correo": string,"creado_en": string,"id": string,"nombre": string,"rol": Database["public"]['Enums']["rol_usuario"]
+                    "acepta_privacidad": boolean,"correo": string,"creado_en": string,"fecha_aceptacion": string | null,"id": string,"nombre": string,"rol": Database["public"]['Enums']["rol_usuario"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "correo": string,"creado_en"?: string,"id": string,"nombre": string,"rol"?: Database["public"]['Enums']["rol_usuario"]
+                    "acepta_privacidad"?: boolean,"correo": string,"creado_en"?: string,"fecha_aceptacion"?: string | null,"id": string,"nombre": string,"rol"?: Database["public"]['Enums']["rol_usuario"]
                   }
                   Update: {
-                    "correo"?: string,"creado_en"?: string,"id"?: string,"nombre"?: string,"rol"?: Database["public"]['Enums']["rol_usuario"]
+                    "acepta_privacidad"?: boolean,"correo"?: string,"creado_en"?: string,"fecha_aceptacion"?: string | null,"id"?: string,"nombre"?: string,"rol"?: Database["public"]['Enums']["rol_usuario"]
                   }
                   Relationships: [
                     
@@ -260,7 +260,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "es_admin":
+            "cambiar_rol":
+{ Args: { "p_rol": Database["public"]['Enums']["rol_usuario"],"p_usuario": string }; Returns: undefined
+                           },
+"es_admin":
 { Args: { "usuario": string }; Returns: boolean
                            },
 "es_docente_de":
@@ -268,6 +271,9 @@ isOneToOne: false
                            },
 "es_miembro_de":
 { Args: { "grupo": string,"usuario": string }; Returns: boolean
+                           },
+"fecha_actual":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "unirse_por_codigo":
 { Args: { "codigo": string }; Returns: string
