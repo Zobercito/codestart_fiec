@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { crearClienteSupabase } from "@/lib/supabase/server";
 import { analizar } from "@/lib/validacion/motor";
 import type { CasoPrueba, Reglas } from "@/lib/validacion/tipos";
+import {
+  corregirOrdenamiento,
+  type ReglasOrdenamiento,
+} from "@/lib/retos/ordenamiento";
+import {
+  corregirAutocompletado,
+  type ReglasAutocompletado,
+} from "@/lib/retos/autocompletado";
+import { calcularEvaluacion } from "@/lib/evaluacion/calcular";
+import type { ReglasEvaluacion } from "@/lib/evaluacion/tipos";
 
 /**
  * Verificacion de un reto de codigo.
@@ -31,8 +41,8 @@ export async function POST(
     return NextResponse.json({ error: "No hay sesión activa." }, { status: 401 });
   }
 
-  // Solo los estudiantes entregan intentos: la tabla alimenta el
-  // analisis de errores del grupo, no la actividad del docente.
+  // Solo los estudiantes entregan intentos. El docente puede abrir el
+  // reto en modo demostración, pero no alimentar el análisis del grupo.
   const { data: perfil } = await supabase
     .from("perfiles")
     .select("rol")
@@ -56,7 +66,12 @@ export async function POST(
     return NextResponse.json({ error: "El reto no existe." }, { status: 404 });
   }
 
-  let cuerpo: { codigo?: string; eleccion?: string };
+  let cuerpo: {
+    codigo?: string;
+    eleccion?: string;
+    orden?: string[];
+    respuestas?: Record<string, string>;
+  };
   try {
     cuerpo = await peticion.json();
   } catch {
@@ -92,6 +107,56 @@ export async function POST(
   const intentosHechos = intentosPrevios?.length ?? 0;
   const quedan = Math.max(0, reto.intentos_maximos - intentosHechos);
 
+  // A4-06.1 y A4-06.2 (F16): agotados los intentos oficiales el
+  // estudiante puede seguir practicando, pero el intento no suma puntos.
+  const puntuable = quedan > 0;
+
+  /* ── evaluación: autoevaluación o final ───────────────────── */
+  const reglasEvaluacion = reto.reglas as ReglasEvaluacion;
+  if (
+    Array.isArray(reglasEvaluacion?.preguntas) &&
+    reglasEvaluacion.preguntas.length > 0 &&
+    (reglasEvaluacion.modo === "autoevaluacion" ||
+      reglasEvaluacion.modo === "final")
+  ) {
+    const respuestas = cuerpo.respuestas ?? {};
+    const resultado = calcularEvaluacion(
+      reglasEvaluacion.preguntas,
+      respuestas,
+      reglasEvaluacion.umbral ?? 60,
+    );
+    const puntos =
+      resultado.aprobado && puntuable
+        ? Math.max(0, reto.puntos - pistasUsadas * 10)
+        : 0;
+
+    await supabase.from("intentos").insert({
+      usuario_id: user.id,
+      reto_id: id,
+      respuesta: JSON.stringify({ respuestas }),
+      resultado,
+      error_detectado: resultado.aprobado
+        ? null
+        : resultado.areasAReforzar.length > 0
+          ? `Reforzar: ${resultado.areasAReforzar.join(", ")}`
+          : resultado.mensaje,
+      acierto: resultado.aprobado,
+      puntos_obtenidos: puntos,
+    });
+
+    return NextResponse.json({
+      evaluacion: resultado,
+      resultado,
+      acierto: resultado.aprobado,
+      puntos,
+      error: resultado.aprobado ? undefined : resultado.mensaje,
+      intentos: intentosHechos + 1,
+      intentosRestantes: Math.max(0, quedan - 1),
+      intentosMaximos: reto.intentos_maximos,
+      puntuable,
+    });
+  }
+
   /* ── reto conceptual: seleccion multiple ──────────────────── */
   if (reto.tipo === "seleccion_multiple") {
     const reglas = reto.reglas as Reglas & {
@@ -101,7 +166,8 @@ export async function POST(
     const correctas = reglas.correctas ?? [];
     const elegida = String(cuerpo.eleccion ?? "");
     const acierto = elegida !== "" && correctas.includes(elegida);
-    const puntos = acierto ? Math.max(0, reto.puntos - pistasUsadas * 10) : 0;
+    const puntos =
+      acierto && puntuable ? Math.max(0, reto.puntos - pistasUsadas * 10) : 0;
 
     const mensaje = acierto
       ? null
@@ -124,6 +190,71 @@ export async function POST(
       intentos: intentosHechos + 1,
       intentosRestantes: Math.max(0, quedan - 1),
       intentosMaximos: reto.intentos_maximos,
+      puntuable,
+    });
+  }
+
+  /* ── ordenamiento ─────────────────────────────────────────── */
+  if (reto.tipo === "ordenamiento") {
+    const reglas = reto.reglas as ReglasOrdenamiento;
+    const orden = Array.isArray(cuerpo.orden) ? cuerpo.orden.map(String) : [];
+    const resultado = corregirOrdenamiento(orden, reglas);
+    const puntos =
+      resultado.acierto && puntuable
+        ? Math.max(0, reto.puntos - pistasUsadas * 10)
+        : 0;
+
+    await supabase.from("intentos").insert({
+      usuario_id: user.id,
+      reto_id: id,
+      respuesta: JSON.stringify({ orden }),
+      resultado,
+      error_detectado: resultado.mensaje,
+      acierto: resultado.acierto,
+      puntos_obtenidos: puntos,
+    });
+
+    return NextResponse.json({
+      resultado,
+      acierto: resultado.acierto,
+      puntos,
+      error: resultado.mensaje ?? undefined,
+      intentos: intentosHechos + 1,
+      intentosRestantes: Math.max(0, quedan - 1),
+      intentosMaximos: reto.intentos_maximos,
+      puntuable,
+    });
+  }
+
+  /* ── autocompletado ───────────────────────────────────────── */
+  if (reto.tipo === "autocompletado") {
+    const reglas = reto.reglas as ReglasAutocompletado;
+    const respuestas = cuerpo.respuestas ?? {};
+    const resultado = corregirAutocompletado(respuestas, reglas);
+    const puntos =
+      resultado.acierto && puntuable
+        ? Math.max(0, reto.puntos - pistasUsadas * 10)
+        : 0;
+
+    await supabase.from("intentos").insert({
+      usuario_id: user.id,
+      reto_id: id,
+      respuesta: JSON.stringify({ respuestas }),
+      resultado,
+      error_detectado: resultado.mensaje,
+      acierto: resultado.acierto,
+      puntos_obtenidos: puntos,
+    });
+
+    return NextResponse.json({
+      resultado,
+      acierto: resultado.acierto,
+      puntos,
+      error: resultado.mensaje ?? undefined,
+      intentos: intentosHechos + 1,
+      intentosRestantes: Math.max(0, quedan - 1),
+      intentosMaximos: reto.intentos_maximos,
+      puntuable,
     });
   }
 
@@ -149,7 +280,8 @@ export async function POST(
     null;
 
   // Cada pista revelada cuesta 10 puntos.
-  const puntos = acierto ? Math.max(0, reto.puntos - pistasUsadas * 10) : 0;
+  const puntos =
+    acierto && puntuable ? Math.max(0, reto.puntos - pistasUsadas * 10) : 0;
 
   await supabase.from("intentos").insert({
     usuario_id: user.id,
@@ -176,5 +308,6 @@ export async function POST(
     intentos: intentosHechos + 1,
     intentosRestantes: Math.max(0, quedan - 1),
     intentosMaximos: reto.intentos_maximos,
+    puntuable,
   });
 }

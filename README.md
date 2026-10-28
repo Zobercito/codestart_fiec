@@ -2,7 +2,7 @@
 
 <h1>CodeStart FIEC</h1>
 
-<p><strong>Plataforma de apoyo al Curso Propedéutico · Versión alfa</strong></p>
+<p><strong>Plataforma de apoyo al Curso Propedéutico · Versión beta</strong></p>
 
 <p>Universidad de Panamá<br>
 Facultad de Informática, Electrónica y Comunicación</p>
@@ -30,9 +30,9 @@ Facultad de Informática, Electrónica y Comunicación</p>
 
 > **¿Qué es este repositorio?**
 >
-> La **aplicación real** de CodeStart FIEC: lecciones interactivas, retos de C con
-> validación estática y seguimiento del avance, construida con Next.js y Supabase.
-> Es la versión alfa desplegada y la base de la versión beta.
+> La **aplicación real** de CodeStart FIEC: ocho módulos con lecciones interactivas, retos de C con
+> validación estática, evaluaciones, medallas y panel de seguimiento para el docente, construida con
+> Next.js y Supabase. Esta es la **versión beta** (`v0.2.0-beta`).
 >
 > El **prototipo de diseño** vive aparte, en
 > **[`Zobercito/codestart-fiec-mockup`](https://github.com/Zobercito/codestart-fiec-mockup)** ·
@@ -52,7 +52,9 @@ Facultad de Informática, Electrónica y Comunicación</p>
 | **Lecciones** | Contenido en MDX con componentes interactivos: anatomía del código, simulador de memoria y recorrido de una instrucción |
 | **Retos** | Editor CodeMirror con autoguardado, casos de prueba, pistas progresivas y diagnóstico del error |
 | **Validación** | Analizador estático de C en el servidor: no ejecuta el código del estudiante, lo analiza y explica por qué falla |
-| **Docente** | Acceso por rol y panel en construcción; la analítica del grupo llega en la beta |
+| **Evaluaciones** | Autoevaluación por módulo y evaluación final con umbral de aprobación y áreas a reforzar |
+| **Docente** | Panorama del grupo, detalle por estudiante, tarea asignada y patrón de error dominante, solo de sus propios grupos |
+| **Modo clase** | Retos sin puntaje para resolver en grupo durante la sesión |
 
 ---
 
@@ -60,13 +62,13 @@ Facultad de Informática, Electrónica y Comunicación</p>
 
 | | |
 |---|---|
-| **Versión** | Alfa desplegada en <https://codestart-fiec.vercel.app> |
-| **Base de datos** | 11 tablas con 26 políticas de RLS por rol |
-| **Contenido** | Motor MDX con 4 componentes interactivos; el módulo 3 está completo como muestra |
-| **Pruebas** | 13 unitarias del motor (Vitest) y 14 de extremo a extremo (Playwright, escritorio y tableta) |
-| **Accesibilidad** | Contraste WCAG 2.1 AA verificado en 7 rutas: 0 fallos |
-| **Rendimiento** | Lección en 1,4–1,8 s; TTFB de 186–223 ms |
-| **En desarrollo (beta)** | Panel docente completo, progreso e insignias persistentes, evaluaciones, modo clase y módulos 5–8 |
+| **Versión** | Beta `v0.2.0-beta` |
+| **Base de datos** | 11 tablas con políticas de RLS por rol y por grupo |
+| **Contenido** | Ocho módulos en MDX, del primero al taller de retos y la evaluación final |
+| **Pruebas** | 33 unitarias (Vitest), suite E2E en escritorio, tableta y Firefox, matriz de RLS y pruebas de contraste |
+| **Accesibilidad** | Contraste WCAG 2.1 AA verificado en 7 rutas: 0 fallos; revisión manual pendiente |
+| **Rendimiento** | Con red limitada (Fast 3G, CPU 4×): LCP de 1,1–1,3 s. Con 100 usuarios concurrentes **no cumple RNF08**; el detalle está en `docs/INFORME_PRUEBAS.md` |
+| **Pendiente para la 1.0** | Validación con estudiantes (RNF04), WebKit y Edge, y correcciones de la validación |
 
 ---
 
@@ -85,7 +87,9 @@ No hay registro público. Estas cuentas simulan las cuentas institucionales que 
 para el curso; los estudiantes solo inician sesión con la que se les asigna.
 
 El grupo de demostración es **Sección 1 · Verano 2026** y su código de inscripción es
-`FIEC-V26-8QK4`. Los datos son de prueba: no escribas información personal real.
+`FIEC-V26-8QK4`. El script de cuentas inscribe automáticamente a cada estudiante en ese grupo,
+de modo que su avance e intentos aparecen en el panel del docente; el código sigue disponible
+para inscripciones manuales. Los datos son de prueba: no escribas información personal real.
 
 ---
 
@@ -146,9 +150,11 @@ tests/              pruebas E2E con Playwright
 docs/               arquitectura, modelo de datos y decisiones
 ```
 
-- **Rutas públicas:** `/`, `/login`.
+- **Rutas públicas:** `/`, `/login`, `/privacidad`.
 - **Rutas de sesión:** `/dashboard`, `/modulos`, `/modulos/[m]`, `/modulos/[m]/lecciones/[l]`,
-  `/retos/[id]`, `/docente`.
+  `/retos/[id]`, `/evaluacion/[modulo]`, `/evaluacion/final`, `/medallas`.
+- **Rutas del docente:** `/docente`, `/docente/grupo/[id]`, `/docente/estudiante/[id]`,
+  `/docente/grupos`, `/docente/asignar`.
 - **Seguridad:** la sesión se resuelve en el servidor y el rol se comprueba en el proxy, en la
   capa de datos y en el RLS de Postgres. Un estudiante no entra a `/docente` ni escribiendo la URL.
 

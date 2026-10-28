@@ -26,7 +26,7 @@ export function Marca({ compacta = false }: { compacta?: boolean }) {
       />
       <span className="hidden leading-none sm:block">
         <span className="block text-[17px] font-extrabold tracking-tight text-fiec-700">
-          CodeStart <span className="text-fiec-500">FIEC</span>
+          CodeStart <span className="text-fiec-600">FIEC</span>
         </span>
         <span className="mt-0.5 block text-[10px] font-medium uppercase tracking-wider text-slate-500">
           Curso Propedéutico · Programación

@@ -124,13 +124,14 @@ guardaría lo que el estudiante quisiera que guardara.
 | `es_docente_de(grupo_id)` | ¿Es docente de ese grupo? |
 | `es_miembro_de(grupo_id)` | ¿Pertenece a ese grupo? |
 | `unirse_por_codigo(codigo)` | Inscripción por código de grupo. Devuelve el id del grupo o `null` |
-| `crear_perfil_al_registrarse()` | Trigger de `auth.users`: crea el perfil con el rol del `user_metadata` |
+| `crear_perfil_al_registrarse()` | Trigger de `auth.users`: crea el perfil; un alta pública siempre quedaría como estudiante |
 | `proteger_campos_perfil()` | Trigger de `perfiles`: bloquea que el rol o la fecha de creación se cambien |
 
 ### Lo que la base de datos no deja hacer
 
 - **Escalada de privilegios**: el trigger `trg_proteger_campos_perfil` rechaza que alguien
-  actualice su propio `rol` a `docente` o `admin`. El rol lo pone el trigger de registro.
+  actualice su propio `rol` a `docente` o `admin`. El rol lo asigna el docente o el
+  administrador con `service_role`; el alta pública solo crearía estudiantes.
 - **Acceso cruzado**: un docente no puede leer los intentos de un grupo ajeno, porque la política
   comprueba `g.docente_id = auth.uid()`.
 - **Falsificar el veredicto**: las reglas y los casos de prueba son JSONB de solo lectura para el

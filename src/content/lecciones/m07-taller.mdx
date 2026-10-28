@@ -1,0 +1,68 @@
+# Taller de retos y ejercicios de integración
+
+> **Contenido provisional.** Pendiente de revisión por el experto docente.
+
+Este módulo no introduce conceptos nuevos: combina variables, condiciones,
+ciclos y arreglos en problemas completos. La meta es leer un enunciado,
+identificar las piezas y comprobar el resultado con casos pequeños.
+
+## Método de trabajo
+
+1. **Entender la entrada.** ¿Qué datos llegan y de qué tipo son?
+2. **Escribir un caso pequeño.** Por ejemplo, tres notas en vez de treinta.
+3. **Resolverlo a mano.** Anota la salida esperada antes de programar.
+4. **Dividir en pasos.** Declarar, recorrer, decidir, acumular, imprimir.
+5. **Probar los límites.** Cero elementos, un elemento, el valor máximo.
+
+## Reto integrador: promedio y aprobados
+
+Dado un arreglo de notas, calcula el promedio e indica cuántos estudiantes
+aprobaron con 70 o más.
+
+```c
+int notas[5] = {80, 65, 90, 70, 55};
+int suma = 0;
+int aprobados = 0;
+
+for (int i = 0; i < 5; i = i + 1) {
+    suma = suma + notas[i];
+    if (notas[i] >= 70) {
+        aprobados = aprobados + 1;
+    }
+}
+
+printf("Promedio: %d\n", suma / 5);
+printf("Aprobados: %d\n", aprobados);
+```
+
+Las piezas son reconocibles: un acumulador (`suma`), un contador
+(`aprobados`), un recorrido y una decisión dentro del recorrido. Casi todos
+los retos del taller se construyen combinando estas mismas piezas.
+
+## Reto integrador: el mayor
+
+```c
+int mayor = notas[0];
+for (int i = 1; i < 5; i = i + 1) {
+    if (notas[i] > mayor) {
+        mayor = notas[i];
+    }
+}
+```
+
+Se empieza con el primer elemento como candidato y se recorre desde el
+segundo. Si aparece uno mayor, se actualiza. Empezar con 0 fallaría con
+notas negativas; empezar con `notas[0]` siempre es seguro.
+
+## Cómo revisar tu solución
+
+- ¿El ciclo recorre exactamente las posiciones válidas?
+- ¿Las variables están inicializadas antes de usarse?
+- ¿La comparación usa el límite correcto (`>` frente a `>=`)?
+- ¿La salida coincide con el caso pequeño que resolviste a mano?
+
+## Para practicar
+
+1. Ordena los pasos de un programa que calcula el promedio.
+2. Completa la condición que cuenta aprobados.
+3. Encuentra el error en un ciclo que empieza en 1.

@@ -1,9 +1,16 @@
 import { notFound } from "next/navigation";
 import { crearClienteSupabase } from "@/lib/supabase/server";
 import { obtenerMiPerfil } from "@/lib/auth/dal";
+import { puedeModoClase } from "@/lib/auth/roles";
 import { PantallaReto, type DatosReto } from "@/components/retos/pantalla-reto";
 import { PantallaRetoConceptual } from "@/components/retos/pantalla-reto-conceptual";
+import { PantallaOrdenamiento } from "@/components/retos/pantalla-ordenamiento";
+import { PantallaAutocompletado } from "@/components/retos/pantalla-autocompletado";
+import { PantallaEvaluacion } from "@/components/evaluacion/pantalla-evaluacion";
 import type { CasoPrueba, Reglas } from "@/lib/validacion/tipos";
+import type { ReglasOrdenamiento } from "@/lib/retos/ordenamiento";
+import type { ReglasAutocompletado } from "@/lib/retos/autocompletado";
+import type { ReglasEvaluacion } from "@/lib/evaluacion/tipos";
 
 /**
  * Vista de un reto.
@@ -19,6 +26,10 @@ export default async function PaginaReto({
   const perfil = await obtenerMiPerfil();
   if (!perfil) notFound();
 
+  // El docente siempre ve el reto como demostración: sin entrega ni
+  // pistas que gasten puntos. El estudiante nunca entra en ese modo.
+  const modoClase = puedeModoClase(perfil.rol);
+
   const supabase = await crearClienteSupabase();
 
   const { data: reto } = await supabase
@@ -29,28 +40,120 @@ export default async function PaginaReto({
 
   if (!reto) notFound();
 
-  const { data: leccion } = await supabase
-    .from("lecciones")
-    .select("id, titulo, orden, modulo_id, modulo:modulos(titulo, orden)")
-    .eq("id", reto.leccion_id)
-    .maybeSingle();
+  // Lección, borrador e intentos solo dependen del reto: se piden juntos
+  // para no encadenar viajes a la base (RNF02).
+  const [{ data: leccion }, { data: borrador }, { data: intentos }] =
+    await Promise.all([
+      supabase
+        .from("lecciones")
+        .select("id, titulo, orden, modulo_id, modulo:modulos(titulo, orden)")
+        .eq("id", reto.leccion_id)
+        .maybeSingle(),
+      supabase
+        .from("codigos")
+        .select("codigo, pistas_usadas")
+        .eq("usuario_id", perfil.id)
+        .eq("reto_id", reto.id)
+        .maybeSingle(),
+      supabase
+        .from("intentos")
+        .select("id")
+        .eq("usuario_id", perfil.id)
+        .eq("reto_id", reto.id),
+    ]);
 
   if (!leccion) notFound();
 
-  const { data: borrador } = await supabase
-    .from("codigos")
-    .select("codigo, pistas_usadas")
-    .eq("usuario_id", perfil.id)
-    .eq("reto_id", reto.id)
-    .maybeSingle();
-
-  const { data: intentos } = await supabase
-    .from("intentos")
-    .select("id")
-    .eq("usuario_id", perfil.id)
-    .eq("reto_id", reto.id);
-
   const modulo = Array.isArray(leccion.modulo) ? leccion.modulo[0] : leccion.modulo;
+
+  const datosLeccion = {
+    titulo: leccion.titulo,
+    orden: leccion.orden,
+    moduloTitulo: modulo?.titulo ?? "",
+    moduloOrden: modulo?.orden ?? 1,
+  };
+
+  /* ── evaluación: autoevaluación o final ───────────────────── */
+  const reglasEvaluacion = reto.reglas as ReglasEvaluacion;
+  if (
+    Array.isArray(reglasEvaluacion?.preguntas) &&
+    reglasEvaluacion.preguntas.length > 0 &&
+    (reglasEvaluacion.modo === "autoevaluacion" ||
+      reglasEvaluacion.modo === "final")
+  ) {
+    return (
+      <PantallaEvaluacion
+        datos={{
+          evaluacion: {
+            id: reto.id,
+            titulo: reglasEvaluacion.titulo ?? reto.enunciado,
+            descripcion: reto.enunciado_detalle,
+            modo: reglasEvaluacion.modo,
+            modulo: reglasEvaluacion.modulo ?? null,
+            moduloTitulo: modulo?.titulo ?? null,
+            umbral: reglasEvaluacion.umbral ?? 60,
+            puntos: reto.puntos,
+            intentosMaximos: reto.intentos_maximos,
+            preguntas: reglasEvaluacion.preguntas.map((pregunta) => ({
+              id: pregunta.id,
+              enunciado: pregunta.enunciado,
+              opciones: pregunta.opciones,
+              area: pregunta.area,
+            })),
+          },
+          intentosHechos: intentos?.length ?? 0,
+          modoClase,
+        }}
+      />
+    );
+  }
+
+  /* ── ordenamiento ─────────────────────────────────────────── */
+  if (reto.tipo === "ordenamiento") {
+    const reglas = reto.reglas as ReglasOrdenamiento;
+    return (
+      <PantallaOrdenamiento
+        datos={{
+          reto: {
+            id: reto.id,
+            enunciado: reto.enunciado,
+            enunciado_detalle: reto.enunciado_detalle,
+            elementos: reglas.elementos ?? [],
+            pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
+            puntos: reto.puntos,
+            intentos_maximos: reto.intentos_maximos,
+          },
+          intentosHechos: intentos?.length ?? 0,
+          leccion: datosLeccion,
+          modoClase,
+        }}
+      />
+    );
+  }
+
+  /* ── autocompletado ───────────────────────────────────────── */
+  if (reto.tipo === "autocompletado") {
+    const reglas = reto.reglas as ReglasAutocompletado;
+    return (
+      <PantallaAutocompletado
+        datos={{
+          reto: {
+            id: reto.id,
+            enunciado: reto.enunciado,
+            enunciado_detalle: reto.enunciado_detalle,
+            plantilla: reglas.plantilla ?? "",
+            blancos: reglas.blancos ?? [],
+            pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
+            puntos: reto.puntos,
+            intentos_maximos: reto.intentos_maximos,
+          },
+          intentosHechos: intentos?.length ?? 0,
+          leccion: datosLeccion,
+          modoClase,
+        }}
+      />
+    );
+  }
 
   /* ── reto conceptual ──────────────────────────────────────── */
   if (reto.tipo === "seleccion_multiple") {
@@ -77,6 +180,7 @@ export default async function PaginaReto({
             moduloTitulo: modulo?.titulo ?? "",
             moduloOrden: modulo?.orden ?? 1,
           },
+          modoClase,
         }}
       />
     );
@@ -122,6 +226,7 @@ int main() {
       moduloOrden: modulo?.orden ?? 1,
     },
     fragmento,
+    modoClase,
   };
 
   return <PantallaReto datos={datos} />;

@@ -25,6 +25,7 @@ export type DatosRetoConceptual = {
   };
   intentosHechos: number;
   leccion: { titulo: string; orden: number; moduloTitulo: string; moduloOrden: number };
+  modoClase?: boolean;
 };
 
 export function PantallaRetoConceptual({
@@ -32,7 +33,7 @@ export function PantallaRetoConceptual({
 }: {
   datos: DatosRetoConceptual;
 }) {
-  const { reto, intentosHechos, leccion } = datos;
+  const { reto, intentosHechos, leccion, modoClase = false } = datos;
 
   const [elegida, setElegida] = useState<string | null>(null);
   const [pistasUsadas, setPistasUsadas] = useState(0);
@@ -92,6 +93,11 @@ export function PantallaRetoConceptual({
       <h1 className="mt-3 text-xl font-extrabold tracking-tight text-slate-900">
         {reto.enunciado}
       </h1>
+      {modoClase ? (
+        <p className="mt-2 rounded-lg bg-up-50 px-3 py-1.5 text-[11px] font-semibold text-up-900 ring-1 ring-up-200">
+          Modo clase: pistas y soluciones ocultas.
+        </p>
+      ) : null}
       {reto.enunciado_detalle ? (
         <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">{reto.enunciado_detalle}</p>
       ) : null}
@@ -124,32 +130,35 @@ export function PantallaRetoConceptual({
       </fieldset>
 
       {/* Pistas */}
-      <div className="mt-5 space-y-2">
-        {pistasReveladas.map((pista) => (
-          <div
-            key={pista.nivel}
-            className="rounded-xl bg-up-50 p-3 text-[12px] leading-relaxed text-up-900 ring-1 ring-up-200"
-          >
-            <span className="font-extrabold">Pista {pista.nivel}</span>
-            <p className="mt-1">{pista.texto}</p>
-          </div>
-        ))}
-        {pistasUsadas < reto.pistas.length ? (
-          <button
-            type="button"
-            onClick={revelarPista}
-            className="rounded-xl border-2 border-dashed border-slate-300 bg-white px-3 py-2.5 text-left text-[12px] font-bold text-slate-700 transition hover:border-up-400 hover:bg-up-50"
-          >
-            🔒 Pista {pistasUsadas + 1} · Revelar <span className="font-normal text-slate-600">−10 pts</span>
-          </button>
-        ) : null}
-      </div>
+      {!modoClase ? (
+        <div className="mt-5 space-y-2">
+          {pistasReveladas.map((pista) => (
+            <div
+              key={pista.nivel}
+              className="rounded-xl bg-up-50 p-3 text-[12px] leading-relaxed text-up-900 ring-1 ring-up-200"
+            >
+              <span className="font-extrabold">Pista {pista.nivel}</span>
+              <p className="mt-1">{pista.texto}</p>
+            </div>
+          ))}
+          {pistasUsadas < reto.pistas.length ? (
+            <button
+              type="button"
+              onClick={revelarPista}
+              className="rounded-xl border-2 border-dashed border-slate-300 bg-white px-3 py-2.5 text-left text-[12px] font-bold text-slate-700 transition hover:border-up-400 hover:bg-up-50"
+            >
+              🔒 Pista {pistasUsadas + 1} · Revelar{" "}
+              <span className="font-normal text-slate-600">−10 pts</span>
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <button
         type="button"
         onClick={enviar}
         disabled={!elegida || enviando}
-        className="mt-5 rounded-xl bg-fiec-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-fiec-600/25 transition hover:bg-fiec-700 disabled:opacity-50"
+        className="mt-5 rounded-xl bg-fiec-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-fiec-600/25 transition hover:bg-fiec-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:shadow-none"
       >
         {enviando ? "Comprobando…" : "Comprobar respuesta"}
       </button>

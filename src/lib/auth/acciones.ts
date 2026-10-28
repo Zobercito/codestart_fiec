@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import { obtenerMiPerfil } from "@/lib/auth/dal";
 import { rutaDeInicio, type Rol } from "@/lib/auth/roles";
 
 /**
@@ -76,4 +77,30 @@ export async function salir() {
   await supabase.auth.signOut();
   revalidatePath("/dashboard");
   redirect("/login");
+}
+
+/**
+ * Aceptación del aviso para usuarios que ya existían antes del A4.
+ *
+ * RLS permite actualizar el propio perfil; el trigger de protección
+ * impide que esta acción cambie el rol.
+ */
+export async function aceptarPrivacidad(): Promise<void> {
+  const perfil = await obtenerMiPerfil();
+  if (!perfil) redirect("/login");
+
+  const supabase = await crearClienteSupabase();
+  const { error } = await supabase
+    .from("perfiles")
+    .update({
+      acepta_privacidad: true,
+      fecha_aceptacion: new Date().toISOString(),
+    })
+    .eq("id", perfil.id);
+
+  if (error) {
+    throw new Error("No se pudo guardar la aceptación del aviso de privacidad.");
+  }
+
+  revalidatePath("/dashboard");
 }

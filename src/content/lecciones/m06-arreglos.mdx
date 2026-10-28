@@ -1,0 +1,73 @@
+# Introducción a estructuras de datos básicas
+
+> **Contenido provisional.** Pendiente de revisión por el experto docente.
+
+Una variable guarda un valor. Un **arreglo** guarda varios valores del mismo
+tipo en posiciones consecutivas, y permite acceder a cada uno por su índice.
+
+## Declarar y recorrer un arreglo
+
+```c
+int notas[5] = {80, 95, 70, 100, 60};
+
+for (int i = 0; i < 5; i = i + 1) {
+    printf("Nota %d: %d\n", i, notas[i]);
+}
+```
+
+La primera posición es `notas[0]`, no `notas[1]`. En un arreglo de cinco
+elementos, los índices válidos son 0, 1, 2, 3 y 4. Acceder a `notas[5]` está
+fuera del arreglo y es un error.
+
+## El índice es una posición, no un valor
+
+Esta distinción es la que más cuesta al principio:
+
+- `notas[2]` significa “el valor que está en la posición 2”.
+- El `2` es el índice; el valor podría ser `70`.
+- El índice empieza en 0 porque indica cuántas posiciones hay que avanzar
+  desde el inicio.
+
+Para recorrer todo el arreglo, el ciclo debe empezar en 0 y terminar en
+`tamaño - 1`. Por eso la condición habitual es `i < tamaño`.
+
+## Sumar y buscar
+
+Un patrón muy común es acumular:
+
+```c
+int suma = 0;
+for (int i = 0; i < 5; i = i + 1) {
+    suma = suma + notas[i];
+}
+printf("Promedio: %d\n", suma / 5);
+```
+
+Otro patrón es buscar un valor:
+
+```c
+int buscado = 70;
+int encontrado = 0;
+
+for (int i = 0; i < 5; i = i + 1) {
+    if (notas[i] == buscado) {
+        encontrado = 1;
+    }
+}
+```
+
+`encontrado` empieza en 0 (falso) y cambia a 1 (verdadero) si aparece el
+valor. Es una bandera: no guarda el valor, guarda si ocurrió.
+
+## Errores frecuentes
+
+- Empezar el ciclo en 1 y saltarse la primera posición.
+- Usar `<= tamaño` y leer una posición que no existe.
+- Confundir el índice con el valor guardado.
+- Olvidar inicializar el acumulador o la bandera.
+
+## Para practicar
+
+1. Ordena los pasos para recorrer un arreglo y sumar sus elementos.
+2. Completa el ciclo que imprime todas las notas.
+3. Explica por qué `notas[5]` es un error en un arreglo de tamaño 5.
