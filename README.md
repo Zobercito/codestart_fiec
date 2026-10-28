@@ -65,9 +65,10 @@ Facultad de Informática, Electrónica y Comunicación</p>
 | **Versión** | Beta `v0.2.0-beta` |
 | **Base de datos** | 11 tablas con políticas de RLS por rol y por grupo |
 | **Contenido** | Ocho módulos en MDX, del primero al taller de retos y la evaluación final |
-| **Pruebas** | 33 unitarias (Vitest), suite E2E en escritorio, tableta y Firefox, matriz de RLS y pruebas de contraste |
+| **Pruebas** | 33 unitarias (Vitest) y 84 de extremo a extremo en escritorio, tableta y Firefox; matriz de RLS y auditoría de contraste |
 | **Accesibilidad** | Contraste WCAG 2.1 AA verificado en 7 rutas: 0 fallos; revisión manual pendiente |
 | **Rendimiento** | Con red limitada (Fast 3G, CPU 4×): LCP de 1,1–1,3 s. Con 100 usuarios concurrentes **no cumple RNF08**; el detalle está en `docs/INFORME_PRUEBAS.md` |
+| **Fuera de la beta** | Exportación CSV (RF17), editor de contenidos (RF18), interfaz de administrador y ejecución real de C |
 | **Pendiente para la 1.0** | Validación con estudiantes (RNF04), WebKit y Edge, y correcciones de la validación |
 
 ---
@@ -90,6 +91,14 @@ El grupo de demostración es **Sección 1 · Verano 2026** y su código de inscr
 `FIEC-V26-8QK4`. El script de cuentas inscribe automáticamente a cada estudiante en ese grupo,
 de modo que su avance e intentos aparecen en el panel del docente; el código sigue disponible
 para inscripciones manuales. Los datos son de prueba: no escribas información personal real.
+
+**Recorrido sugerido para ver la beta:**
+
+1. Como estudiante: abre un módulo, entra a una lección, resuelve un reto y mira cómo se actualiza
+   el avance y aparece la medalla. Al agotar los intentos de un reto, la corrección sigue
+   funcionando pero ya no suma puntos.
+2. Como docente: entra a **Panel**, revisa los indicadores del grupo, abre el detalle de un
+   estudiante y asigna un módulo. Solo verás tus propios grupos.
 
 ---
 
@@ -139,15 +148,17 @@ npm run db:types      # regenera src/lib/supabase/types.generados.ts
 
 ```text
 src/
-├── app/            rutas (App Router): públicas, de sesión y API
-├── components/     ui · leccion · retos · docente
-├── lib/            supabase (DAL) · auth (roles) · validacion (analizador de C)
+├── app/            rutas (App Router): públicas, de sesión, del docente y API
+├── components/     ui · leccion · retos · evaluacion · docente
+├── lib/            supabase (DAL) · auth · validacion (analizador de C)
+│                   progreso · insignias · evaluacion · docente · grupos · retos
 └── content/        módulos y lecciones en MDX + retos en JSON
 supabase/
 ├── migrations/     esquema, RLS y privilegios versionados
 └── seed.sql        datos de demostración
 tests/              pruebas E2E con Playwright
-docs/               arquitectura, modelo de datos y decisiones
+scripts/            cuentas, medición de rendimiento, carga, RLS y contraste
+docs/               arquitectura, informes y protocolo de usabilidad
 ```
 
 - **Rutas públicas:** `/`, `/login`, `/privacidad`.
@@ -182,7 +193,7 @@ El caso espera «Mayor de edad».
 ```
 
 ```bash
-npm test        # 13 pruebas del motor
+npm test        # 33 pruebas unitarias: motor, progreso, evaluación y retos
 ```
 
 ---
@@ -205,9 +216,27 @@ tabla. Editar una lección es un commit, con su revisión.
 
 ---
 
+## Pruebas
+
+```bash
+npm test              # unitarias (Vitest)
+npm run test:e2e      # E2E en escritorio, tableta y Firefox (Playwright)
+npm run test:rls      # matriz de aislamiento entre usuarios y grupos
+npm run test:seguridad
+npm run auditar:contraste
+node scripts/medir-rendimiento.mjs          # Fast 3G + CPU 4×
+node --env-file=.env.local scripts/carga.mjs # 100 usuarios concurrentes
+```
+
+Las dos últimas necesitan el servidor de producción levantado (`npm run build && npm start`).
+Resultados y criterios en **[`docs/INFORME_PRUEBAS.md`](docs/INFORME_PRUEBAS.md)**.
+
+---
+
 ## Despliegue
 
-La versión alfa está en Vercel con el proyecto ya vinculado y las variables configuradas:
+La producción está en Vercel, vinculada al repositorio: **cada push a `main` despliega**, y las
+ramas generan un despliegue de previsualización. Para publicar manualmente:
 
 ```bash
 vercel login
@@ -224,6 +253,9 @@ recrea desde cero, ejecuta `vercel link` antes de `vercel --prod`.
 - **[Arquitectura](docs/ARQUITECTURA.md)** — capas, decisiones de diseño y flujo de datos.
 - **[Modelo de datos](docs/MODELO_DATOS.md)** — las 11 tablas, relaciones y políticas de RLS.
 - **[Decisiones técnicas](docs/DECISIONES.md)** — ADR, incluida la validación estática de C.
+- **[Informe de pruebas](docs/INFORME_PRUEBAS.md)** — qué se ejecutó, con qué resultado y dónde está la evidencia.
+- **[Informe del Avance 4](docs/INFORME_A4.md)** — estado de la beta, pendientes, riesgos y plan.
+- **[Protocolo de usabilidad](docs/PROTOCOLO_USABILIDAD.md)** — tareas, métricas y umbrales de RNF04.
 
 ## Repositorio del prototipo
 
