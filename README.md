@@ -84,16 +84,18 @@ estudiante inicia sesión con la que se le asigna. Los permisos se comprueban tr
 
 | Pieza | Para qué |
 |---|---|
-| **Next.js 16** (App Router) | Rutas, componentes y acciones de servidor, prerenderizado parcial |
-| **React 19** | Interfaz, con React Compiler activado |
-| **TypeScript 5** | Tipos de extremo a extremo; tipos generados desde Postgres |
-| **Supabase** (Auth + Postgres + RLS) | Sesión, datos y autorización por fila |
-| **Tailwind CSS 4** | Estilos; los tokens viven en `@theme` dentro de `globals.css` |
-| **CodeMirror 6** | Editor de código con resaltado de C |
-| **MDX** (`next-mdx-remote` 6) | Lecciones versionadas en el repositorio, no en la base |
-| **Zod 4** | Validación de las entradas de las acciones |
-| **Vitest 5 · Playwright 1.64 · axe-core** | Unitarias, extremo a extremo y accesibilidad |
-| **Vercel** | Despliegue continuo desde `main` |
+| **Next.js 16** (App Router) | Servidor y rutas: páginas de estudiante y docente, Server Actions para iniciar sesión, inscribirse con código, crear un grupo y asignar un módulo; Route Handlers en `/api/retos/[id]/verificar` y `/borrador`; `proxy.ts` redirige según el rol e `instant = false` marca las páginas que dependen de la sesión |
+| **React 19** | Interfaz: componentes de servidor para las pantallas y de cliente para el editor, las pantallas de reto y los formularios (`useActionState`); React Compiler activado |
+| **TypeScript 5** | Tipos de extremo a extremo; `types.generados.ts` se genera desde Postgres y `npm run typecheck` lo verifica antes de cada commit |
+| **Supabase** (Auth + Postgres + RLS) | Autenticación con correo y contraseña y sesión en cookies (`@supabase/ssr`); Postgres con las 11 tablas del modelo; RLS que aísla a un estudiante de otro y a cada docente con sus grupos; la clave de servicio solo se usa en scripts del servidor |
+| **Tailwind CSS 4** | Estilos de toda la interfaz con los tokens en `@theme` (familias `fiec`, `up`, `coder` y escala `slate`); no hay archivo de configuración |
+| **CodeMirror 6** | Editor del estudiante: resaltado de C, tema oscuro y un keymap propio para el cierre de llaves |
+| **MDX** (`next-mdx-remote` 6) | Lecciones en `src/content`, versionadas en git y compiladas con `blockJS: false` para permitir expresiones |
+| **Zod 4** | Validación de lo que entra por las Server Actions: correo y contraseña, código de grupo, nombre del grupo y asignación |
+| **Vitest 5** | Pruebas unitarias del analizador de C, del progreso, de la evaluación y de los retos |
+| **Playwright 1.64 + axe-core** | Pruebas de extremo a extremo en escritorio, tableta y Firefox, y auditoría de accesibilidad |
+| **Supabase CLI + psql** | Migraciones versionadas (`npm run db:migrate`), semilla y generación de tipos; la conexión va por el pooler |
+| **Vercel** | Despliegue continuo desde `main`, previsualizaciones por rama y variables de entorno de producción |
 
 En una línea: el navegador pide páginas a Next, Next consulta Supabase con la sesión del usuario a
 través de la DAL, y Postgres aplica RLS. **El puntaje y la corrección se calculan solo en el
