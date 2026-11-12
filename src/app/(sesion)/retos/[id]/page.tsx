@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { crearClienteSupabase } from "@/lib/supabase/server";
-import { obtenerMiPerfil } from "@/lib/auth/dal";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
+import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
 import { puedeModoClase } from "@/lib/auth/roles";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
 import { PantallaReto, type DatosReto } from "@/components/retos/pantalla-reto";
 import { PantallaRetoConceptual } from "@/components/retos/pantalla-reto-conceptual";
 import { PantallaOrdenamiento } from "@/components/retos/pantalla-ordenamiento";
@@ -31,8 +33,11 @@ export default async function PaginaReto({
   const modoClase = puedeModoClase(perfil.rol);
 
   const supabase = await crearClienteSupabase();
+  const admin = crearClienteAdmin();
 
-  const { data: reto } = await supabase
+  // L3: `reglas` ya no es legible por el cliente. La página las lee con
+  // service_role y solo envía al navegador lo que el reto necesita.
+  const { data: reto } = await admin
     .from("retos")
     .select("id, leccion_id, tipo, enunciado, enunciado_detalle, reglas, casos, pistas, puntos, intentos_maximos")
     .eq("id", id)
@@ -41,30 +46,47 @@ export default async function PaginaReto({
   if (!reto) notFound();
 
   // Lección, borrador e intentos solo dependen del reto: se piden juntos
-  // para no encadenar viajes a la base (RNF02).
-  const [{ data: leccion }, { data: borrador }, { data: intentos }] =
-    await Promise.all([
-      supabase
-        .from("lecciones")
-        .select("id, titulo, orden, modulo_id, modulo:modulos(titulo, orden)")
-        .eq("id", reto.leccion_id)
-        .maybeSingle(),
-      supabase
-        .from("codigos")
-        .select("codigo, pistas_usadas")
-        .eq("usuario_id", perfil.id)
-        .eq("reto_id", reto.id)
-        .maybeSingle(),
-      supabase
-        .from("intentos")
-        .select("id")
-        .eq("usuario_id", perfil.id)
-        .eq("reto_id", reto.id),
-    ]);
+  // para no encadenar viajes a la base (RNF02). La ruta de módulos se pide
+  // también para respetar el bloqueo secuencial (L5).
+  const [
+    { data: leccion },
+    { data: borrador },
+    { data: intentos },
+    rutaBase,
+  ] = await Promise.all([
+    supabase
+      .from("lecciones")
+      .select("id, titulo, orden, modulo_id, modulo:modulos(titulo, orden)")
+      .eq("id", reto.leccion_id)
+      .maybeSingle(),
+    supabase
+      .from("codigos")
+      .select("codigo, pistas_usadas")
+      .eq("usuario_id", perfil.id)
+      .eq("reto_id", reto.id)
+      .maybeSingle(),
+    supabase
+      .from("intentos")
+      .select("id")
+      .eq("usuario_id", perfil.id)
+      .eq("reto_id", reto.id),
+    perfil.rol === "estudiante"
+      ? obtenerRutaDeModulos(perfil)
+      : Promise.resolve(null),
+  ]);
 
   if (!leccion) notFound();
 
   const modulo = Array.isArray(leccion.modulo) ? leccion.modulo[0] : leccion.modulo;
+
+  // L5: un reto de un módulo bloqueado no se abre por URL.
+  if (perfil.rol === "estudiante" && rutaBase) {
+    const { modulos, moduloEnCurso } = calcularEstadosModulos(rutaBase);
+    const estado = modulos.find((m) => m.orden === (modulo?.orden ?? 1))?.estado;
+    if (estado === "bloqueado") {
+      redirect(moduloEnCurso ? `/modulos/${moduloEnCurso.orden}` : "/modulos");
+    }
+  }
 
   const datosLeccion = {
     titulo: leccion.titulo,
@@ -134,6 +156,12 @@ export default async function PaginaReto({
   /* ── autocompletado ───────────────────────────────────────── */
   if (reto.tipo === "autocompletado") {
     const reglas = reto.reglas as ReglasAutocompletado;
+    // L1: no enviar correcta ni explicacion al cliente.
+    const blancosPublicos = (reglas.blancos ?? []).map((b) => ({
+      id: b.id,
+      etiqueta: b.etiqueta,
+      opciones: b.opciones,
+    }));
     return (
       <PantallaAutocompletado
         datos={{
@@ -142,7 +170,7 @@ export default async function PaginaReto({
             enunciado: reto.enunciado,
             enunciado_detalle: reto.enunciado_detalle,
             plantilla: reglas.plantilla ?? "",
-            blancos: reglas.blancos ?? [],
+            blancos: blancosPublicos,
             pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
             puntos: reto.puntos,
             intentos_maximos: reto.intentos_maximos,

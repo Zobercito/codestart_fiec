@@ -9,7 +9,7 @@ import { test, expect, type Page } from "@playwright/test";
  */
 
 const CORREO = "francisco.gonzalez@up.ac.pa";
-const CLAVE = "Codestart2026!";
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
 
 const ORDENAMIENTO = "6b8faf30-2856-40c3-bc68-d0781ebfd3f3";
 const AUTOCOMPLETADO = "7a112d4e-a13e-4c51-a20c-e371e744fefc";
@@ -102,10 +102,29 @@ test.describe("Retos interactivos y evaluaciones", () => {
     await expect(page.getByText("Anatomía")).toBeVisible();
   });
 
-  test("la evaluación final exige el 70 % y responde quince preguntas", async ({
+  test("la evaluación final exige haber completado los módulos 1–7", async ({
     page,
   }) => {
     await entrar(page);
+    await page.goto("/evaluacion/final");
+
+    // L6: sin los módulos 1–7 completos, la evaluación final redirige
+    // al módulo en curso.
+    await page.waitForURL(/\/modulos(\/\d+)?$/, { timeout: 30_000 });
+    await expect(
+      page.getByRole("link", { name: "Ruta de módulos" }),
+    ).toBeVisible();
+  });
+
+  test("el docente ve las quince preguntas de la evaluación final en modo clase", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    await page.fill('input[type="email"]', "docente@up.ac.pa");
+    await page.fill('input[type="password"]', CLAVE);
+    await page.click('button[type="submit"]');
+    await page.waitForURL(/\/docente$/, { timeout: 30_000 });
+
     await page.goto("/evaluacion/final");
 
     await expect(
@@ -114,40 +133,7 @@ test.describe("Retos interactivos y evaluaciones", () => {
     await expect(
       page.getByText("15 preguntas · 70 % para aprobar"),
     ).toBeVisible();
-
-    const correctas = [
-      "Las partes físicas",
-      "Los programas y datos",
-      "Una secuencia finita de pasos",
-      "Una decisión",
-      "while",
-      "Traduce antes de ejecutar",
-      "stdio.h",
-      "int",
-      "==",
-      ">=",
-      "Puede ser infinito",
-      "0",
-      "4",
-      "Un acumulador",
-      "Los límites y casos vacíos",
-    ];
-
-    const campos = page.locator("fieldset");
-    for (let i = 0; i < correctas.length; i += 1) {
-      await campos
-        .nth(i)
-        .getByRole("radio", { name: correctas[i], exact: true })
-        .check();
-    }
-
-    await page.getByRole("button", { name: "Entregar evaluación" }).click();
-
-    await expect(page.getByText("100 %", { exact: true }).first()).toBeVisible({
-      timeout: 20_000,
-    });
-    await expect(page.getByText(/Aprobaste con 100 %/)).toBeVisible();
-    await expect(page.getByText("15 de 15 respuestas correctas")).toBeVisible();
+    await expect(page.locator("fieldset")).toHaveCount(15);
   });
 
   test("un estudiante no puede activar el modo clase por URL", async ({

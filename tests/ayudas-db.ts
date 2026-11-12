@@ -1,6 +1,6 @@
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Client } from "pg";
 
 /** Conexión de Postgres para limpiar los datos que crean las pruebas. */
 export function urlBaseDeDatos(): string {
@@ -18,10 +18,43 @@ export function urlBaseDeDatos(): string {
     .replace(/^['"]|['"]$/g, "");
 }
 
-export function ejecutarSql(sql: string) {
-  execFileSync(
-    "psql",
-    [urlBaseDeDatos(), "-v", "ON_ERROR_STOP=1", "-c", sql],
-    { stdio: "pipe" },
-  );
+/**
+ * Ejecuta SQL con el driver `pg`, no con `psql`: el host de CI no
+ * siempre trae el cliente de Postgres instalado.
+ *
+ * Usa el pooler en modo transacción (6543) y cae al puerto de la URL
+ * si el pooler no responde ahí.
+ */
+export async function ejecutarSql(sql: string): Promise<void> {
+  const url = new URL(urlBaseDeDatos());
+  const base = {
+    host: url.hostname,
+    user: url.username,
+    password: decodeURIComponent(url.password),
+    database: url.pathname.replace(/^\//, "") || "postgres",
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 20_000,
+  };
+
+  const puertos = [6543, Number(url.port || 5432)];
+  let ultimoError: unknown = null;
+
+  for (const puerto of puertos) {
+    const cliente = new Client({ ...base, port: puerto });
+    try {
+      await cliente.connect();
+      await cliente.query(sql);
+      await cliente.end();
+      return;
+    } catch (error) {
+      ultimoError = error;
+      try {
+        await cliente.end();
+      } catch {
+        // La conexión ya estaba cerrada.
+      }
+    }
+  }
+
+  throw ultimoError;
 }

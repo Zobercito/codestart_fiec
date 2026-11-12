@@ -6,6 +6,8 @@ import { crearClienteSupabase } from "@/lib/supabase/server";
  *
  * El borrador es suyo y solo suyo: la politica de RLS de la tabla
  * codigos lo garantiza, y el servidor comprueba ademas la sesion.
+ *
+ * L2: las pistas ya no se aceptan desde aqui; van por POST /pista.
  */
 export async function PUT(
   peticion: Request,
@@ -22,7 +24,7 @@ export async function PUT(
     return NextResponse.json({ error: "No hay sesión activa." }, { status: 401 });
   }
 
-  let cuerpo: { codigo?: string; pistasUsadas?: number };
+  let cuerpo: { codigo?: string };
   try {
     cuerpo = await peticion.json();
   } catch {
@@ -30,14 +32,12 @@ export async function PUT(
   }
 
   const codigo = String(cuerpo.codigo ?? "");
-  const pistasUsadas = Math.max(0, Math.min(3, Number(cuerpo.pistasUsadas ?? 0)));
 
   const { error } = await supabase.from("codigos").upsert(
     {
       usuario_id: user.id,
       reto_id: id,
       codigo,
-      pistas_usadas: pistasUsadas,
       actualizado_en: new Date().toISOString(),
     },
     { onConflict: "usuario_id,reto_id" },

@@ -8,7 +8,7 @@ import { ejecutarSql } from "./ayudas-db";
  */
 
 const CORREO = "francisco.gonzalez@up.ac.pa";
-const CLAVE = "Codestart2026!";
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
 const RETO_CODIGO = "a3c0bec8-453b-4b1d-bcc3-92445276e359";
 
 const CODIGO_CORRECTO = `#include <stdio.h>
@@ -32,11 +32,11 @@ async function entrar(page: Page) {
 }
 
 test.describe("Avance 4 · progreso, insignias y privacidad", () => {
-  test.beforeAll(() => {
+  test.beforeAll(async () => {
     // Las pruebas de bloqueo necesitan un módulo con contenido detrás
     // del módulo en curso. Los módulos 6 y 7 están vacíos en la beta;
     // se añaden dos lecciones temporales y se borran al terminar.
-    ejecutarSql(`
+    await ejecutarSql(`
       delete from public.lecciones where titulo = 'Lección temporal E2E';
       insert into public.lecciones
         (modulo_id, titulo, orden, archivo_contenido, duracion_min)
@@ -49,8 +49,8 @@ test.describe("Avance 4 · progreso, insignias y privacidad", () => {
     `);
   });
 
-  test.afterAll(() => {
-    ejecutarSql(
+  test.afterAll(async () => {
+    await ejecutarSql(
       "delete from public.lecciones where titulo = 'Lección temporal E2E';",
     );
   });

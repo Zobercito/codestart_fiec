@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import {
   obtenerMiPerfil,
   obtenerRutaDeModulos,
@@ -89,7 +90,10 @@ async function guardarEstado(
     return { ok: true, estado: "completado" };
   }
 
-  const { error } = await supabase.from("progresos").upsert(
+  // L4: `progresos` ya no se escribe desde el cliente. La acción
+  // comprueba la sesión y el desbloqueo; la escritura va con service_role.
+  const admin = crearClienteAdmin();
+  const { error } = await admin.from("progresos").upsert(
     {
       usuario_id: perfil.id,
       leccion_id: leccionId,

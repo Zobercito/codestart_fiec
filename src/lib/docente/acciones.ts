@@ -60,7 +60,13 @@ function generarCodigo(nombre: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 12);
 
-  const sufijo = Math.random().toString(36).slice(2, 6).toUpperCase();
+  // Sufijo aleatorio con crypto, no Math.random (L10).
+  const bytes = crypto.getRandomValues(new Uint8Array(3));
+  const sufijo = Array.from(bytes)
+    .map((b) => b.toString(36).toUpperCase())
+    .join("")
+    .slice(0, 4)
+    .padEnd(4, "0");
   return `${base || "FIEC"}-${sufijo}`;
 }
 

@@ -62,13 +62,16 @@ export function PantallaOrdenamiento({
   }
 
   async function revelarPista() {
-    const siguiente = Math.min(pistasUsadas + 1, reto.pistas.length);
-    setPistasUsadas(siguiente);
-    void fetch(`/api/retos/${reto.id}/borrador`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo: "", pistasUsadas: siguiente }),
-    });
+    // L2: el contador lo incrementa el servidor, no el cliente.
+    try {
+      const r = await fetch(`/api/retos/${reto.id}/pista`, { method: "POST" });
+      const datosPista = await r.json();
+      if (typeof datosPista.pistasUsadas === "number") {
+        setPistasUsadas(datosPista.pistasUsadas);
+      }
+    } catch {
+      // Sin conexión: no se revela la pista.
+    }
   }
 
   async function enviar() {

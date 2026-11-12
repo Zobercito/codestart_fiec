@@ -161,7 +161,8 @@ autocompletado y 1 de código), más la **autoevaluación de cada módulo** (5 p
 | `docente@up.ac.pa` | docente |
 | `francisco.gonzalez@up.ac.pa` | estudiante |
 
-**Contraseña:** `Codestart2026!`
+**Contraseña:** la define `DEMO_PASSWORD` en `.env.local` (no se versiona). Para recrear las
+cuentas: `DEMO_PASSWORD=... npm run db:usuarios`.
 
 No hay registro público. Estas cuentas simulan las cuentas institucionales que el docente crea
 para el curso; los estudiantes solo inician sesión con la que se les asigna.

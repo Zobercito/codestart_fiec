@@ -8,7 +8,7 @@ import { test, expect, type Page } from "@playwright/test";
  */
 
 const CORREO = "francisco.gonzalez@up.ac.pa";
-const CLAVE = "Codestart2026!";
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
 
 /** El reto de codigo: el que el motor de validacion sabe comprobar. */
 const RETO_CODIGO = "a3c0bec8-453b-4b1d-bcc3-92445276e359";

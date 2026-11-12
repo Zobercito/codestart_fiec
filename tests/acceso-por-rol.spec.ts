@@ -5,7 +5,7 @@ import { test, expect, type Page } from "@playwright/test";
  * docente y estudiante terminaban en el dashboard del estudiante.
  */
 
-const CLAVE = "Codestart2026!";
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
 
 async function entrar(page: Page, correo: string, destino: RegExp) {
   await page.goto("/login");
@@ -17,9 +17,8 @@ async function entrar(page: Page, correo: string, destino: RegExp) {
 
 test("el docente aterriza en su panel, no en el dashboard", async ({ page }) => {
   await entrar(page, "docente@up.ac.pa", /\/docente$/);
-  await expect(
-    page.getByRole("heading", { name: "Panel docente" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Hola,/i })).toBeVisible();
+  await expect(page.getByText("Panel docente").first()).toBeVisible();
 
   await page.goto("/dashboard");
   await page.waitForURL(/\/docente$/, { timeout: 30_000 });

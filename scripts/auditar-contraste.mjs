@@ -20,11 +20,15 @@
 //
 // Requiere el servidor de producción levantado (`npm run build && npm start`).
 
+import { existsSync } from "node:fs";
 import { chromium } from "playwright";
+
+// L9: la contraseña demo no vive en el repositorio.
+if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const CORREO = process.env.AUDITORIA_CORREO ?? "francisco.gonzalez@up.ac.pa";
-const CLAVE = process.env.AUDITORIA_CLAVE ?? "Codestart2026!";
+const CLAVE = process.env.AUDITORIA_CLAVE ?? process.env.DEMO_PASSWORD ?? "";
 
 const RUTAS = [
   "/dashboard",

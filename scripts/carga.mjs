@@ -61,8 +61,14 @@ const RECORRIDOS = {
 };
 
 const CUENTAS = {
-  estudiante: { correo: "francisco.gonzalez@up.ac.pa", clave: "Codestart2026!" },
-  docente: { correo: "docente@up.ac.pa", clave: "Codestart2026!" },
+  estudiante: {
+    correo: "francisco.gonzalez@up.ac.pa",
+    clave: process.env.DEMO_PASSWORD ?? "",
+  },
+  docente: {
+    correo: "docente@up.ac.pa",
+    clave: process.env.DEMO_PASSWORD ?? "",
+  },
 };
 
 /** Firma sesión con el mismo formato de cookie que usa `@supabase/ssr`. */

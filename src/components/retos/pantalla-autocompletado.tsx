@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type {
-  BlancoAutocompletado,
+  BlancoPublico,
   ResultadoAutocompletado,
 } from "@/lib/retos/autocompletado";
 
@@ -15,7 +15,7 @@ export type DatosAutocompletado = {
     enunciado: string;
     enunciado_detalle: string | null;
     plantilla: string;
-    blancos: BlancoAutocompletado[];
+    blancos: BlancoPublico[];
     pistas: Pista[];
     puntos: number;
     intentos_maximos: number;
@@ -55,13 +55,16 @@ export function PantallaAutocompletado({
   const completas = reto.blancos.every((blanco) => respuestas[blanco.id]);
 
   async function revelarPista() {
-    const siguiente = Math.min(pistasUsadas + 1, reto.pistas.length);
-    setPistasUsadas(siguiente);
-    void fetch(`/api/retos/${reto.id}/borrador`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo: "", pistasUsadas: siguiente }),
-    });
+    // L2: el contador lo incrementa el servidor, no el cliente.
+    try {
+      const r = await fetch(`/api/retos/${reto.id}/pista`, { method: "POST" });
+      const datosPista = await r.json();
+      if (typeof datosPista.pistasUsadas === "number") {
+        setPistasUsadas(datosPista.pistasUsadas);
+      }
+    } catch {
+      // Sin conexión: no se revela la pista.
+    }
   }
 
   async function enviar() {

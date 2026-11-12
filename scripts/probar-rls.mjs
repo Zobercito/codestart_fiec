@@ -21,7 +21,11 @@ if (!url || !anon || !service) {
 }
 
 const marca = Date.now();
-const clave = "Codestart2026!";
+const clave = process.env.DEMO_PASSWORD;
+if (!clave) {
+  console.error("Falta DEMO_PASSWORD en .env.local.");
+  process.exit(1);
+}
 const correos = {
   estudianteA: `rls.est.a.${marca}@up.ac.pa`,
   estudianteB: `rls.est.b.${marca}@up.ac.pa`,
@@ -478,6 +482,91 @@ async function principal() {
   comprobar(
     !asignacionIntrusa.ok,
     "estudiante no puede crear asignaciones en un grupo ajeno",
+  );
+
+  console.log("\nIntegridad A5 (L2–L4)");
+
+  const reglasOcultas = await rest(
+    `retos?select=reglas&id=eq.${retoId}`,
+    { token: token.estA },
+  );
+  comprobar(
+    !reglasOcultas.ok,
+    "estudiante no puede leer retos.reglas (las respuestas)",
+  );
+
+  const retoPublico = await rest(
+    `retos?select=id,enunciado,tipo&id=eq.${retoId}`,
+    { token: token.estA },
+  );
+  comprobar(
+    retoPublico.ok && filas(retoPublico).length > 0,
+    "estudiante sí lee las columnas públicas del reto",
+  );
+
+  const intentoPropio = await rest("intentos", {
+    metodo: "POST",
+    token: token.estA,
+    cuerpo: {
+      usuario_id: estudiantes.a,
+      reto_id: retoId,
+      respuesta: "a",
+      acierto: true,
+      puntos_obtenidos: 100,
+    },
+  });
+  comprobar(
+    !intentoPropio.ok,
+    "estudiante no puede insertar un intento directamente",
+  );
+
+  const progresoPropio = await rest("progresos", {
+    metodo: "POST",
+    token: token.estA,
+    cuerpo: {
+      usuario_id: estudiantes.a,
+      leccion_id: leccionId,
+      estado: "completado",
+    },
+  });
+  comprobar(
+    !progresoPropio.ok,
+    "estudiante no puede insertar un progreso directamente",
+  );
+
+  const pistasPropias = await rest(
+    `codigos?usuario_id=eq.${estudiantes.a}&reto_id=eq.${retoId}`,
+    {
+      metodo: "PATCH",
+      token: token.estA,
+      cuerpo: { pistas_usadas: 0 },
+    },
+  );
+  comprobar(
+    !pistasPropias.ok,
+    "estudiante no puede reescribir codigos.pistas_usadas",
+  );
+
+  const borrarBorrador = await rest(
+    `codigos?usuario_id=eq.${estudiantes.a}&reto_id=eq.${retoId}`,
+    { metodo: "DELETE", token: token.estA },
+  );
+  comprobar(
+    !borrarBorrador.ok,
+    "estudiante no puede borrar su borrador (reiniciaría las pistas)",
+  );
+
+  const guardarCodigo = await rest(
+    `codigos?usuario_id=eq.${estudiantes.a}&reto_id=eq.${retoId}`,
+    {
+      metodo: "PATCH",
+      token: token.estA,
+      cuerpo: { codigo: "// actualizado por A" },
+    },
+  );
+  comprobar(
+    guardarCodigo.ok,
+    "estudiante sí puede guardar el código de su borrador",
   );
 
   console.log("\nMatriz RLS: PASÓ");

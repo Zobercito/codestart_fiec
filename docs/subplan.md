@@ -1152,7 +1152,7 @@ ninguna tarea crítica bloqueada.
 | `docente@up.ac.pa` | docente | Panel y asignaciones |
 | `francisco.gonzalez@up.ac.pa` | estudiante | Flujo principal y datos de grupo |
 
-Contraseña: `Codestart2026!`.
+Contraseña: la define `DEMO_PASSWORD` en `.env.local` (no se versiona).
 
 Para RLS cruzado, crear un segundo docente y un segundo grupo solo en el entorno de pruebas, y
 borrarlos al terminar.

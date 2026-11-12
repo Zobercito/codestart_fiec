@@ -1,6 +1,7 @@
 import "server-only";
 
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import type {
   PreguntaPublica,
   ReglasEvaluacion,
@@ -76,9 +77,11 @@ async function buscar(
   modo: "autoevaluacion" | "final",
   modulo?: number,
 ): Promise<EvaluacionVista | null> {
-  const supabase = await crearClienteSupabase();
+  // L3: las reglas de la evaluación contienen las respuestas correctas.
+  // Se leen con service_role y aVista() las elimina antes de devolverlas.
+  const admin = crearClienteAdmin();
 
-  const { data: retos } = await supabase
+  const { data: retos } = await admin
     .from("retos")
     .select("id, enunciado, enunciado_detalle, reglas, puntos, intentos_maximos")
     .eq("tipo", "seleccion_multiple")
@@ -96,7 +99,7 @@ async function buscar(
   let moduloTitulo: string | null = null;
   const orden = candidato.reglas.modulo;
   if (typeof orden === "number") {
-    const { data: modulo } = await supabase
+    const { data: modulo } = await admin
       .from("modulos")
       .select("titulo")
       .eq("orden", orden)

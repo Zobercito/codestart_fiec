@@ -11,11 +11,16 @@
 // Requiere la aplicación corriendo (`npm start`) en CARGA_BASE o en
 // http://localhost:3000.
 
+import { existsSync } from "node:fs";
 import { chromium } from "playwright";
 
+// L9: la contraseña demo no vive en el repositorio.
+if (existsSync(".env.local")) process.loadEnvFile(".env.local");
+
 const BASE = process.env.CARGA_BASE ?? "http://localhost:3000";
-const ESTUDIANTE = { correo: "francisco.gonzalez@up.ac.pa", clave: "Codestart2026!" };
-const DOCENTE = { correo: "docente@up.ac.pa", clave: "Codestart2026!" };
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
+const ESTUDIANTE = { correo: "francisco.gonzalez@up.ac.pa", clave: CLAVE };
+const DOCENTE = { correo: "docente@up.ac.pa", clave: CLAVE };
 
 const PUBLICAS = ["/", "/login", "/privacidad"];
 const DE_ESTUDIANTE = [

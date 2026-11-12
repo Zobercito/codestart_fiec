@@ -1,6 +1,7 @@
-import { notFound } from "next/navigation";
-import { obtenerMiPerfil } from "@/lib/auth/dal";
+import { notFound, redirect } from "next/navigation";
+import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
 import { puedeModoClase } from "@/lib/auth/roles";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
 import {
   contarIntentosEvaluacion,
   obtenerEvaluacionFinal,
@@ -15,6 +16,19 @@ export const metadata = { title: "Evaluación final · CodeStart FIEC" };
 export default async function PaginaEvaluacionFinal() {
   const perfil = await obtenerMiPerfil();
   if (!perfil) notFound();
+
+  // L6: la evaluación final exige haber completado los módulos 1–7.
+  // El docente entra siempre como demostración.
+  if (perfil.rol === "estudiante") {
+    const ruta = await obtenerRutaDeModulos(perfil);
+    const { modulos, moduloEnCurso } = calcularEstadosModulos(ruta);
+    const pendientes = modulos.filter(
+      (m) => m.orden <= 7 && m.total > 0 && m.estado !== "completado",
+    );
+    if (pendientes.length > 0) {
+      redirect(moduloEnCurso ? `/modulos/${moduloEnCurso.orden}` : "/modulos");
+    }
+  }
 
   const evaluacion = await obtenerEvaluacionFinal();
   if (!evaluacion) notFound();

@@ -11,14 +11,14 @@ import { ejecutarSql } from "./ayudas-db";
  */
 
 const CORREO = "docente@up.ac.pa";
-const CLAVE = "Codestart2026!";
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
 
 let nombreGrupo = "";
 let codigoGrupo = "";
 
-function limpiarGrupo(codigo: string) {
+async function limpiarGrupo(codigo: string) {
   const limpio = codigo.replace(/'/g, "''");
-  ejecutarSql(`
+  await ejecutarSql(`
     delete from public.asignaciones
     where grupo_id in (
       select id from public.grupos where codigo_inscripcion = '${limpio}'
@@ -38,7 +38,7 @@ async function entrarDocente(page: Page) {
 
 test.describe("Flujo del docente", () => {
   test.afterAll(async () => {
-    if (codigoGrupo) limpiarGrupo(codigoGrupo);
+    if (codigoGrupo) await limpiarGrupo(codigoGrupo);
   });
 
   test("el docente no aterriza en el dashboard del estudiante", async ({
@@ -64,8 +64,22 @@ test.describe("Flujo del docente", () => {
     await expect(page.getByText("Punto crítico", { exact: true })).toBeVisible();
     await expect(page.getByText("Errores frecuentes", { exact: true })).toBeVisible();
     await expect(
-      page.getByText(/Datos reales de Sección 1 · Verano 2026/),
-    ).toBeVisible();
+      page.getByText(/Datos reales de/).first(),
+    ).toBeVisible({ timeout: 15_000 });
+
+    // Si quedan grupos de pruebas de otras corridas, el panel abre el
+    // primero. Se elige explícitamente el grupo del seed.
+    const selector = page.locator("#selector-grupo");
+    if ((await selector.count()) > 0) {
+      const valor = await selector
+        .locator("option", { hasText: "Sección 1" })
+        .getAttribute("value");
+      if (valor) {
+        await selector.selectOption(valor);
+        await page.getByRole("button", { name: "Ver" }).click();
+        await page.waitForURL(/\/docente\?grupo=/, { timeout: 30_000 });
+      }
+    }
 
     await page.getByRole("link", { name: "Ver seguimiento" }).click();
     await page.waitForURL(/\/docente\/grupo\//);

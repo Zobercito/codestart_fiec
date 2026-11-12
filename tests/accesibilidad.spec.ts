@@ -12,7 +12,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 const ESTUDIANTE = "francisco.gonzalez@up.ac.pa";
 const DOCENTE = "docente@up.ac.pa";
-const CLAVE = "Codestart2026!";
+const CLAVE = process.env.DEMO_PASSWORD ?? "";
 const RETO_ORDENAMIENTO = "6b8faf30-2856-40c3-bc68-d0781ebfd3f3";
 
 async function entrar(page: Page, correo: string, destino: RegExp) {

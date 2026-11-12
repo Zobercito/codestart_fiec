@@ -17,7 +17,12 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const CONTRASENA = "Codestart2026!";
+// L9: la contraseña de demostración no vive en el repositorio.
+const CONTRASENA = process.env.DEMO_PASSWORD;
+if (!CONTRASENA) {
+  console.error("Falta DEMO_PASSWORD en .env.local (contraseña de las cuentas de demostración).");
+  process.exit(1);
+}
 const AHORA = new Date().toISOString();
 
 const usuarios = [
@@ -188,4 +193,4 @@ if (docente) {
   }
 }
 
-console.log(`\n${usuarios.length} usuarios listos. Contraseña de prueba: ${CONTRASENA}`);
+console.log(`\n${usuarios.length} usuarios listos.`);

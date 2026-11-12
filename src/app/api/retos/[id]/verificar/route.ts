@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
+import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
+import { calcularEstadosModulos } from "@/lib/progreso/calculo";
 import { analizar } from "@/lib/validacion/motor";
 import type { CasoPrueba, Reglas } from "@/lib/validacion/tipos";
 import {
@@ -12,6 +15,11 @@ import {
 } from "@/lib/retos/autocompletado";
 import { calcularEvaluacion } from "@/lib/evaluacion/calcular";
 import type { ReglasEvaluacion } from "@/lib/evaluacion/tipos";
+
+/** L8: límites de la verificación (RNF07). */
+const LIMITE_PETICION = 64 * 1024; // 64 KB de cuerpo
+const LIMITE_CODIGO = 20_000; // 20 KB de código
+const TIEMPO_MAXIMO_MS = 5_000;
 
 /**
  * Verificacion de un reto de codigo.
@@ -33,6 +41,7 @@ export async function POST(
   const { id } = await params;
 
   const supabase = await crearClienteSupabase();
+  const admin = crearClienteAdmin();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -56,14 +65,43 @@ export async function POST(
     );
   }
 
-  const { data: reto } = await supabase
+  const { data: reto } = await admin
     .from("retos")
-    .select("id, tipo, enunciado, reglas, casos, pistas, puntos, intentos_maximos")
+    .select("id, leccion_id, tipo, enunciado, reglas, casos, pistas, puntos, intentos_maximos")
     .eq("id", id)
     .maybeSingle();
 
   if (!reto) {
     return NextResponse.json({ error: "El reto no existe." }, { status: 404 });
+  }
+
+  // L5 también en la API: un reto de un módulo bloqueado no se puede
+  // entregar aunque se llame directamente, sin pasar por la página.
+  const perfilCompleto = await obtenerMiPerfil();
+  if (perfilCompleto) {
+    const [{ data: leccionReto }, ruta] = await Promise.all([
+      supabase
+        .from("lecciones")
+        .select("modulo:modulos(orden)")
+        .eq("id", reto.leccion_id)
+        .maybeSingle(),
+      obtenerRutaDeModulos(perfilCompleto),
+    ]);
+
+    const moduloReto = Array.isArray(leccionReto?.modulo)
+      ? leccionReto.modulo[0]
+      : leccionReto?.modulo;
+    const { modulos } = calcularEstadosModulos(ruta);
+    const estado = modulos.find(
+      (m) => m.orden === (moduloReto?.orden ?? 0),
+    )?.estado;
+
+    if (estado === "bloqueado") {
+      return NextResponse.json(
+        { error: "Ese módulo todavía está bloqueado. Termina el anterior primero." },
+        { status: 403 },
+      );
+    }
   }
 
   let cuerpo: {
@@ -73,6 +111,14 @@ export async function POST(
     respuestas?: Record<string, string>;
   };
   try {
+    // L8: límite de tamaño antes de parsear (RNF07).
+    const longitud = Number(peticion.headers.get("content-length") ?? 0);
+    if (longitud > LIMITE_PETICION) {
+      return NextResponse.json(
+        { error: "La entrega es demasiado grande." },
+        { status: 413 },
+      );
+    }
     cuerpo = await peticion.json();
   } catch {
     return NextResponse.json({ error: "Peticion invalida." }, { status: 400 });
@@ -130,7 +176,7 @@ export async function POST(
         ? Math.max(0, reto.puntos - pistasUsadas * 10)
         : 0;
 
-    await supabase.from("intentos").insert({
+    await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: JSON.stringify({ respuestas }),
@@ -173,7 +219,7 @@ export async function POST(
       ? null
       : "Esa no es la respuesta correcta. Vuelve a leer la leccion: fíjate en qué se guarda de verdad una variable.";
 
-    await supabase.from("intentos").insert({
+    await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: elegida,
@@ -204,7 +250,7 @@ export async function POST(
         ? Math.max(0, reto.puntos - pistasUsadas * 10)
         : 0;
 
-    await supabase.from("intentos").insert({
+    await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: JSON.stringify({ orden }),
@@ -236,7 +282,7 @@ export async function POST(
         ? Math.max(0, reto.puntos - pistasUsadas * 10)
         : 0;
 
-    await supabase.from("intentos").insert({
+    await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: JSON.stringify({ respuestas }),
@@ -267,11 +313,28 @@ export async function POST(
 
   const codigo = String(cuerpo.codigo ?? "");
 
+  // L8: el código también tiene su propio límite.
+  if (codigo.length > LIMITE_CODIGO) {
+    return NextResponse.json(
+      { error: `El código supera el límite de ${LIMITE_CODIGO} caracteres.` },
+      { status: 413 },
+    );
+  }
+
+  const inicio = performance.now();
   const resultado = analizar(
     codigo,
     reto.reglas as Reglas,
     (reto.casos ?? []) as CasoPrueba[],
   );
+
+  // RNF07: el análisis no debe tardar más de 5 s.
+  if (performance.now() - inicio > TIEMPO_MAXIMO_MS) {
+    return NextResponse.json(
+      { error: "El análisis tardó demasiado. Simplifica el programa." },
+      { status: 422 },
+    );
+  }
 
   const acierto = resultado.ok;
   const errorDetectado =
@@ -283,7 +346,7 @@ export async function POST(
   const puntos =
     acierto && puntuable ? Math.max(0, reto.puntos - pistasUsadas * 10) : 0;
 
-  await supabase.from("intentos").insert({
+  await admin.from("intentos").insert({
     usuario_id: user.id,
     reto_id: id,
     codigo_enviado: codigo,

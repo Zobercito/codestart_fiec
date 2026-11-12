@@ -7,11 +7,15 @@
 // pantalla. Es una medición LOCAL contra `npm start`; no sustituye una
 // medición en producción.
 
+import { existsSync } from "node:fs";
 import { chromium } from "playwright";
+
+// L9: la contraseña demo no vive en el repositorio.
+if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const CORREO = process.env.PRUEBA_CORREO ?? "francisco.gonzalez@up.ac.pa";
-const CLAVE = process.env.PRUEBA_CLAVE ?? "Codestart2026!";
+const CLAVE = process.env.PRUEBA_CLAVE ?? process.env.DEMO_PASSWORD ?? "";
 const REPETICIONES = 3;
 
 const PANTALLAS = [

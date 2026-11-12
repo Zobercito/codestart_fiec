@@ -44,18 +44,18 @@ export function PantallaRetoConceptual({
   } | null>(null);
   const [enviando, setEnviando] = useState(false);
 
-  const revelarPista = useCallback(() => {
-    const siguiente = Math.min(pistasUsadas + 1, reto.pistas.length);
-    setPistasUsadas(siguiente);
-    // Las pistas reveladas quedan registradas en el borrador: el
-    // descuento por pistas lo aplica el servidor, y no se fia del
-    // navegador.
-    void fetch(`/api/retos/${reto.id}/borrador`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo: "", pistasUsadas: siguiente }),
-    });
-  }, [pistasUsadas, reto.id, reto.pistas.length]);
+  const revelarPista = useCallback(async () => {
+    // L2: el contador lo incrementa el servidor, no el cliente.
+    try {
+      const r = await fetch(`/api/retos/${reto.id}/pista`, { method: "POST" });
+      const datosPista = await r.json();
+      if (typeof datosPista.pistasUsadas === "number") {
+        setPistasUsadas(datosPista.pistasUsadas);
+      }
+    } catch {
+      // Sin conexión: no se revela la pista.
+    }
+  }, [reto.id]);
 
   async function enviar() {
     if (!elegida) return;

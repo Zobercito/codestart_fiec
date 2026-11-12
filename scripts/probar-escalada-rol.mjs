@@ -19,7 +19,11 @@ if (!url || !anon || !service) {
 }
 
 const correo = `prueba.escalada.${Date.now()}@up.ac.pa`;
-const contrasena = "Codestart2026!";
+const contrasena = process.env.DEMO_PASSWORD;
+if (!contrasena) {
+  console.error("Falta DEMO_PASSWORD en .env.local.");
+  process.exit(1);
+}
 let id = null;
 
 const cabecerasAnon = {

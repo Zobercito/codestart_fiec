@@ -13,6 +13,15 @@ export type BlancoAutocompletado = {
   explicacion?: string;
 };
 
+/**
+ * Blanco sin la respuesta correcta: lo que viaja al navegador (L1).
+ */
+export type BlancoPublico = {
+  id: string;
+  etiqueta: string;
+  opciones: string[];
+};
+
 export type ReglasAutocompletado = {
   plantilla: string;
   blancos: BlancoAutocompletado[];

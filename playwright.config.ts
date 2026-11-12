@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 /**
@@ -11,8 +12,14 @@ import { defineConfig, devices } from "@playwright/test";
  * base de datos real, porque el motor de validacion lee las reglas y
  * los casos de ahi.
  *
- * Las cuentas de prueba las crea `npm run db:usuarios`.
+ * Las cuentas de prueba las crea `npm run db:usuarios`. La contraseña
+ * sale de DEMO_PASSWORD: no vive en el repositorio (L9).
  */
+
+// Carga .env.local si existe, para que DEMO_PASSWORD llegue a los tests.
+if (existsSync(".env.local")) {
+  process.loadEnvFile(".env.local");
+}
 
 const PUERTO = 3000;
 const BASE = `http://localhost:${PUERTO}`;

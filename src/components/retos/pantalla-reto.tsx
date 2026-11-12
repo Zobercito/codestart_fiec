@@ -74,14 +74,14 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
 
   /* ── autoguardado (RF11) ─────────────────────────────────── */
   const autoguardar = useCallback(
-    (codigoNuevo: string, pistas: number) => {
+    (codigoNuevo: string) => {
       if (temporizador.current) clearTimeout(temporizador.current);
       temporizador.current = setTimeout(async () => {
         setGuardado("guardando");
         await fetch(`/api/retos/${reto.id}/borrador`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ codigo: codigoNuevo, pistasUsadas: pistas }),
+          body: JSON.stringify({ codigo: codigoNuevo }),
         });
         setGuardado("guardado");
       }, 1500);
@@ -96,17 +96,17 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
     await fetch(`/api/retos/${reto.id}/borrador`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo, pistasUsadas }),
+      body: JSON.stringify({ codigo }),
     });
     router.push(`/modulos/${leccion.moduloOrden}/lecciones/${leccion.orden}`);
-  }, [codigo, leccion.moduloOrden, leccion.orden, pistasUsadas, reto.id, router]);
+  }, [codigo, leccion.moduloOrden, leccion.orden, reto.id, router]);
 
   const alCambiar = useCallback(
     (codigoNuevo: string) => {
       setCodigo(codigoNuevo);
-      autoguardar(codigoNuevo, pistasUsadas);
+      autoguardar(codigoNuevo);
     },
-    [autoguardar, pistasUsadas],
+    [autoguardar],
   );
 
   useEffect(() => () => {
@@ -134,18 +134,19 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
 
   /* ── pedir una pista ─────────────────────────────────────── */
   async function pedirPista() {
-    const indice = pistasUsadas;
-    if (indice >= reto.pistas.length) return;
-    const siguiente = indice + 1;
-    setPistasUsadas(siguiente);
-    // Se guarda sin esperar al autoguardado: si el estudiante pide una
-    // pista y verifica justo despues, el servidor tiene que saber que
-    // la pidio para descontar los 10 puntos.
-    void fetch(`/api/retos/${reto.id}/borrador`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ codigo, pistasUsadas: siguiente }),
-    });
+    if (pistasUsadas >= reto.pistas.length) return;
+    // L2: el contador lo incrementa el servidor, no el cliente.
+    try {
+      const r = await fetch(`/api/retos/${reto.id}/pista`, {
+        method: "POST",
+      });
+      const datosPista = await r.json();
+      if (typeof datosPista.pistasUsadas === "number") {
+        setPistasUsadas(datosPista.pistasUsadas);
+      }
+    } catch {
+      // Sin conexión: no se revela la pista para no descontar sin registrar.
+    }
   }
 
   const resultado = respuesta?.resultado;
