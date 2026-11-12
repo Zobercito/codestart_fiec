@@ -51,5 +51,5 @@
     "typescript": "^5",
     "vitest": "^5.0.4"
   },
-  "description": "CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC (Avance 3, version alfa)"
+  "description": "CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC (Avance 4, versión beta)"
 }

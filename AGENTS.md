@@ -10,8 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Qué es este repositorio
 
-CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC. Esto es el **Avance 3**
-(versión alfa, 28 de octubre de 2026).
+CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC. Esto es el **Avance 4**
+(versión beta, `v0.2.0-beta`, entregado el 11 de noviembre de 2026).
 
 El repositorio hermano `codestart-fiec-mockup` contiene el **mockup de diseño del Avance 2**:
 es la fuente de verdad de la interfaz (pantallas, textos, tokens, tablas de contraste). Cuando
@@ -251,3 +251,29 @@ La CLI lo escribe bien en `supabase/.temp/pooler-url` tras hacer `supabase link`
 Además, todo el flujo funciona **sin el PAT**: las migraciones se aplican con `psql` y los tipos
 se generan con `supabase gen types typescript --db-url "<connection string>"`. El PAT solo hizo
 falta para crear el proyecto, y se puede revocar.
+
+<!-- opencode-bootstrap:start -->
+## Proyecto
+
+- **Stack:** node (next, react, tailwind, supabase, vitest, playwright, typescript)
+- **Gestor de paquetes:** npm
+
+## Comandos
+
+| Acción | Comando |
+| --- | --- |
+| dev | `npm run dev` |
+| build | `npm run build` |
+| test | `npm test` |
+| lint | `npm run lint` |
+| typecheck | `npm run typecheck` |
+| test:e2e | `npm run test:e2e` |
+| test:rls | `npm run test:rls` |
+| test:seguridad | `npm run test:seguridad` |
+| test:watch | `npm run test:watch` |
+
+## Definición de terminado
+
+Un cambio está terminado cuando el comando real de verificación se ha
+ejecutado y ha pasado. No vale «debería funcionar».
+<!-- opencode-bootstrap:end -->
