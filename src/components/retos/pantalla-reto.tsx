@@ -166,7 +166,9 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
             +{reto.puntos} pts
           </span>
           <span className="ml-auto text-[10px] font-bold text-slate-600">
-            Intento {intentosHechos + 1} de {reto.intentos_maximos}
+            {intentosHechos >= reto.intentos_maximos
+              ? "Práctica libre · sin puntos"
+              : `Intento ${intentosHechos + 1} de ${reto.intentos_maximos}`}
           </span>
         </div>
 

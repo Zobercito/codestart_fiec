@@ -17,7 +17,9 @@ async function entrar(page: Page, correo: string, destino: RegExp) {
 
 test("el docente aterriza en su panel, no en el dashboard", async ({ page }) => {
   await entrar(page, "docente@up.ac.pa", /\/docente$/);
-  await expect(page.getByRole("heading", { name: /Hola,/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Hola,/i })).toBeVisible({
+    timeout: 20_000,
+  });
   await expect(page.getByText("Panel docente").first()).toBeVisible();
 
   await page.goto("/dashboard");

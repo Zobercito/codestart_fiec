@@ -90,7 +90,9 @@ export function PantallaEvaluacion({
           aprobar
         </span>
         <span className="ml-auto text-[10px] font-bold text-slate-600">
-          Intento {intentosHechos + 1}
+          {intentosHechos >= evaluacion.intentosMaximos
+            ? "Práctica libre"
+            : `Intento ${intentosHechos + 1}`}
         </span>
       </div>
 

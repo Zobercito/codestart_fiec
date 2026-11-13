@@ -32,15 +32,27 @@ export async function actualizarSesion(peticion: NextRequest) {
     },
   );
 
-  // getUser() valida el token contra el servidor de Supabase.
+  // getClaims() verifica la firma del JWT localmente (con claves
+  // asimétricas) y devuelve sus claims sin ir al servidor. Es el camino
+  // rápido: evita un viaje a Auth en cada petición (RNF08).
+  const { data: verificado, error } = await supabase.auth.getClaims();
+
+  if (!error && verificado) {
+    return { respuesta, autenticado: true, verificado };
+  }
+
+  // Fallback: token caducado o proyecto con clave simétrica. getUser()
+  // refresca la sesión y valida contra el servidor; sin él, la sesión
+  // se caería al caducar el access token.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // getClaims() verifica la firma del JWT localmente y devuelve sus
-  // claims, sin ir al servidor. De ahi sale el rol, para la
-  // comprobacion optimista de rutas.
-  const { data: verificado } = await supabase.auth.getClaims();
-
-  return { respuesta, usuario: user, verificado };
+  return {
+    respuesta,
+    autenticado: Boolean(user),
+    verificado: user
+      ? { claims: { sub: user.id, user_metadata: user.user_metadata } }
+      : null,
+  };
 }

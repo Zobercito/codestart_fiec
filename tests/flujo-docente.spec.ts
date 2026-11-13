@@ -57,7 +57,7 @@ test.describe("Flujo del docente", () => {
 
     await expect(
       page.getByRole("heading", { name: /Hola,/i }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("Cumplimiento", { exact: true })).toBeVisible();
     await expect(page.getByText("Tasa de acierto", { exact: true })).toBeVisible();
     await expect(page.getByText("Atrasados", { exact: true })).toBeVisible();

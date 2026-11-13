@@ -86,7 +86,7 @@ export async function obtenerMiGrupo(perfil: Perfil) {
 }
 
 /** Los 8 modulos del curso con el estado de progreso del usuario. */
-export async function obtenerRutaDeModulos(perfil: Perfil) {
+export const obtenerRutaDeModulos = cache(async (perfil: Perfil) => {
   const supabase = await crearClienteSupabase();
 
   const [{ data: modulos }, { data: lecciones }, { data: progresos }] =
@@ -135,7 +135,7 @@ export async function obtenerRutaDeModulos(perfil: Perfil) {
     completadas: completadasPorModulo.get(m.id) ?? 0,
     enProgreso: enProgresoPorModulo.get(m.id) ?? false,
   }));
-}
+});
 
 /** La asignacion vigente del grupo, con su fecha de entrega. */
 export async function obtenerMiTarea(perfil: Perfil) {

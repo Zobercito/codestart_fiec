@@ -215,7 +215,17 @@ export default async function PaginaReto({
   }
 
   /* ── reto de codigo ───────────────────────────────────────── */
-  const codigoInicial = `#include <stdio.h>
+  // L7: el código inicial y el fragmento salen de `reglas`, no del
+  // componente. El fallback mantiene los retos antiguos que aún no los
+  // tengan migrados.
+  const reglasCodigo = reto.reglas as Reglas & {
+    codigo_inicial?: string;
+    fragmento?: string;
+  };
+
+  const codigoInicial =
+    reglasCodigo.codigo_inicial ??
+    `#include <stdio.h>
 
 int main() {
     int edad = 18;
@@ -227,7 +237,9 @@ int main() {
     return 0;
 }`;
 
-  const fragmento = `if (condicion) {
+  const fragmento =
+    reglasCodigo.fragmento ??
+    `if (condicion) {
     instruccion;
 } else {
     instruccion;

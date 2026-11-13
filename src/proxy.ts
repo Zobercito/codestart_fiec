@@ -16,11 +16,11 @@ import {
  * verificacion real esta en la DAL y en el RLS de Postgres.
  */
 export default async function proxy(peticion: NextRequest) {
-  const { respuesta, usuario, verificado } = await actualizarSesion(peticion);
+  const { respuesta, autenticado, verificado } = await actualizarSesion(peticion);
   const ruta = peticion.nextUrl.pathname;
 
   // Sin sesion: solo se admiten las rutas publicas.
-  if (!usuario) {
+  if (!autenticado) {
     if (esRutaPublica(ruta)) return respuesta;
     const destino = new URL("/login", peticion.url);
     destino.searchParams.set("desde", ruta);
