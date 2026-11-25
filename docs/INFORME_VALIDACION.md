@@ -1,7 +1,7 @@
 # Informe de validación — CodeStart FIEC 1.0
 
 **Fecha:** 24/11/2026  
-**Versión:** `v1.0.0` (código local; despliegue pendiente al cierre de este informe)  
+**Versión:** `v1.0.0` (desplegada y verificada el 25/11/2026)  
 **Responsable:** equipo del proyecto
 
 > **Regla de honestidad:** este informe no inventa métricas. Lo que no se ejecutó se declara como **no ejecutado** con su causa. Las pruebas técnicas sí se ejecutaron y se indican con su salida real.

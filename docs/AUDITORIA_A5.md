@@ -3,10 +3,10 @@
 **Fecha de auditoría:** 23 de noviembre de 2026 (America/Panama)  
 **Entrega declarada:** 25 de noviembre de 2026  
 **Repositorio auditado:** `CodeStart_FIEC/`  
-**Commit auditado:** `4f1b6d7 perf(a5): acelera el proxy, indexa el panel y cierra estados de UI` (12 nov 2026 21:33 −05:00)  
-**Versión del paquete:** `0.2.0-beta`  
-**Tags existentes:** `v0.1.0-alpha`, `v0.2.0-beta`  
-**Tag `v1.0.0`:** no existe  
+**Commit de cierre:** `3072ed4 release: cierra la v1.0.0 con integridad, rendimiento y documentación`  
+**Versión del paquete:** `1.0.0`  
+**Tags existentes:** `v0.1.0-alpha`, `v0.2.0-beta`, `v1.0.0`  
+**Tag `v1.0.0`:** creado y desplegado; push a `origin/main` correcto  
 **Modo:** la auditoría inicial fue de solo lectura sobre el código; no se hizo commit ni se desplegó y no se rotaron claves. Al restaurarse el backend se ejecutaron las suites del propio proyecto (`test:e2e`, `test:rls`, `test:seguridad`, `auditar:contraste`), que crean y limpian datos temporales de prueba; la suite E2E modifica el estado de la cuenta demo. Después se ejecutó el **Grupo 1** (ver addendum): eso sí modificó código, aplicó una migración y escribió datos de prueba. El resto del informe describe el estado auditado antes de ese grupo.
 
 > **Actualización 23/11 19:35:** el proyecto Supabase `vorhdykyfnklwcfwhfme` volvió a responder. Producción hace login correctamente (`/dashboard`), `/api/salud` devuelve 200 y las suites técnicas ya se pudieron ejecutar. La limitación inicial de backend queda resuelta; se mantiene la distinción entre **verificado**, **no verificado** y **supuesto**.
@@ -17,7 +17,7 @@
 
 ### **NO LISTO.**
 
-Hoy no se puede entregar el A5 tal como está definido. El backend ya está restaurado y el flujo principal funciona en producción (login → `/dashboard`; `/api/salud` 200), pero no existe `v1.0.0` ni despliegue etiquetado, y no existe ninguno de los entregables documentales del cierre: informe de validación, manuales, capacitación, acta, mantenimiento, plan de respaldos, informe A5 ni paquete ZIP. Además, RNF04, RNF05, RNF08 y la compatibilidad WebKit/Edge siguen sin evidencia.
+**Veredicto final: NO LISTO en el checklist estricto del A5; LISTO CON RESERVAS para la demo técnica y la entrega documental.** El código está desplegado, el tag `v1.0.0` existe, el flujo principal funciona en producción y el paquete documental está escrito. Lo que impide declararlo «listo» son las evidencias que dependen de personas o de infraestructura: piloto/usabilidad (RNF04), carga de 100 usuarios (RNF08), monitor de 7 días (RNF05), WebKit/Edge, accesibilidad manual, restauración de respaldo probada, contenido real de `m01`/`m02`/`m04` y firmas del acta/capacitación.
 
 **Mínimo imprescindible para poder entregar:**
 
@@ -75,7 +75,7 @@ Referencias: `docs/PLAN_AVANCES.md §6.5` y `§12`; `docs/subplan_a5.md §8`.
 | 23 | Seed reproducible: un comando deja la demo lista | **No hecho** | `npm run db:seed` falla porque no hay `psql`; `db:types` falla porque no hay binario `supabase`; `db:migrate` usa `--linked` y PAT | Script con `pg`/`npx`, entorno documentado |
 | 24 | Respaldo restaurado y probado | **No hecho** | Sin script ni evidencia | Ídem #11 |
 
-**Resumen:** 0 ítems «hecho», 2 «parcial» (hallazgos A4 y regresión técnica), 22 «no hecho» y 0 «no verificable». El A5, como entrega de cierre, está prácticamente sin empezar; el código del A4/A5 temprano existe y la regresión técnica pasa, pero el paquete de validación no.
+**Resumen (foto del 23/11):** 0 ítems «hecho», 2 «parcial», 22 «no hecho». El estado final del 25/11 —deploy, tag, manuales, ZIP y pruebas— está en el **addendum de cierre** al final; esta matriz se conserva como diagnóstico inicial.
 
 ---
 
@@ -604,3 +604,59 @@ La auditoría inicial fue de solo lectura y no desplegó ni imprimió secretos. 
 - Repetir la suite completa en un entorno estable y adjuntar la salida.
 - RNF04, RNF05, RNF08, WebKit/Edge, accesibilidad manual y restauración de respaldo.
 - Contenido real de `m01`, `m02` y `m04`.
+
+---
+
+## Addendum · Cierre técnico y release (25/11/2026)
+
+**Estado:** release técnico cerrado. La entrega formal del A5 sigue condicionada por las evidencias que requieren personas o infraestructura.
+
+### Release
+
+| Elemento | Resultado |
+|---|---|
+| Commit | `3072ed4 release: cierra la v1.0.0 con integridad, rendimiento y documentación` |
+| Tag | `v1.0.0` (anotado) |
+| Push | `origin/main` y `v1.0.0` publicados |
+| Deploy | `dpl_8QUTnyKoVsbuaoP7tBqjgyMZqkmR`, producción `https://codestart-fiec.vercel.app` |
+| Región | Funciones en `pdx1` (`x-vercel-id: iad1::pdx1::…`) |
+| ZIP | `codestart-fiec_v1.0.0_2026-11-25.zip`, 198 archivos, sin `.env.local`, `node_modules` ni `skills-lock.json` |
+
+### Smoke test de producción
+
+- `/api/salud` → **200** `{ok:true}`.
+- Login de estudiante → `/dashboard`; cookie de sesión `httpOnly=true`, `secure=true`, `sameSite=Lax`.
+- `POST /api/retos/[id]/pista` → **200** (pista nueva o `null` si ya se agotaron).
+- Panel docente → carga real; **483 intentos** agregados, 72 % de acierto, 0 atrasados.
+- Navbar móvil (390 px) → enlaces **Módulos** y **Mis medallas** visibles.
+- Fecha del panel → **24 de noviembre de 2026** en `America/Panama` (UTC ya era 25).
+- Cabeceras → CSP, `X-Frame-Options: DENY`, `Referrer-Policy`, `X-Content-Type-Options: nosniff`, HSTS; sin `X-Powered-By`.
+
+### Regresión final
+
+- `npm test`: **38/38**.
+- `npx playwright test --retries=1`: **93/93 en 10,1 min**.
+- `npm run test:rls`: **32/32**.
+- `npm run test:seguridad`: ✅.
+- `npm run auditar:contraste`: **0/7**.
+- `npm run typecheck`, `npm run lint`, `npm run build`: ✅ (20 rutas).
+- `npm run db:seed` con `SEED_DRY_RUN=1`: ✅.
+- `npm run db:types`: ✅.
+
+### Lo que sigue siendo «no listo» en el A5
+
+| Requisito / entregable | Estado | Por qué |
+|---|---|---|
+| RNF04 usabilidad > 8/10 | No verificado | Sin participantes/encuesta |
+| RNF05 disponibilidad ≥ 95 % | Parcial | `/api/salud` OK; sin monitor de 7 días |
+| RNF08 100 usuarios | No cumple | p95 histórico 54,6 s; sin escenario nuevo |
+| RNF02 < 2 s | No cerrado | Local: lección 1,18 s; dashboard 2,67 s; editor 4,65 s |
+| RNF01 WebKit/Edge | No ejecutado | Sin proyectos/CI de esos navegadores |
+| RNF06 manual | Pendiente | Teclado, lector, zoom 200 %, reflow |
+| RNF09 retención | Parcial | Aviso/aceptación; sin job de retención |
+| Respaldo restaurado | No probado | `pg_dump` no instalado; script listo |
+| Contenido m01/m02/m04 | Provisional | 3 de 9 lecciones son placeholders |
+| Capacitación y acta | Pendiente | Requieren sesión y firmas |
+| Sustentación | Pendiente | Material/ensayo no realizados |
+
+**Conclusión:** el producto y el paquete documental están listos para demo y revisión; el A5 formal no puede declararse «cumplido» sin las evidencias anteriores. No se inventaron métricas.

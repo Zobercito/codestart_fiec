@@ -15,7 +15,7 @@
 | Correcciones y RC | ✅ | Grupos 1–6 aplicados; `v1.0.0` desplegado; regresión técnica verde salvo el timeout de red puntual |
 | Validación | 🟡 | Pruebas técnicas ✅; piloto/usabilidad **no ejecutados** |
 | Manuales y capacitación | 🟡 | Manuales escritos; capacitación no realizada |
-| Cierre | 🟡 | Informes, acta y ZIP preparados; tag final pendiente de la firma |
+| Cierre | 🟡 | Informes, tag `v1.0.0`, deploy y ZIP hechos; acta pendiente de firma |
 
 ## 2. Logros y entregables
 
