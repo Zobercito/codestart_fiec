@@ -620,7 +620,7 @@ La auditoría inicial fue de solo lectura y no desplegó ni imprimió secretos. 
 | Push | `origin/main` y `v1.0.0` publicados |
 | Deploy | `dpl_8QUTnyKoVsbuaoP7tBqjgyMZqkmR`, producción `https://codestart-fiec.vercel.app` |
 | Región | Funciones en `pdx1` (`x-vercel-id: iad1::pdx1::…`) |
-| ZIP | `codestart-fiec_v1.0.0_2026-11-25.zip`, 198 archivos, sin `.env.local`, `node_modules` ni `skills-lock.json` |
+| ZIP | `codestart-fiec_v1.0.0_2026-11-25.zip`, 197 archivos, sin `.env.local`, `node_modules` ni `skills-lock.json` |
 
 ### Smoke test de producción
 
