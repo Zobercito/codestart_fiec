@@ -21,7 +21,7 @@ EXCLUIDOS = {
 }
 EXCLUIDOS_ARCHIVO = {
     ".env", ".env.local", ".env.production", ".env.development",
-    "tsconfig.tsbuildinfo", "next-env.d.ts", "skills-lock.json",
+    "tsconfig.tsbuildinfo", "next-env.d.ts", "skills-lock.json", "plan.md",
 }
 
 def incluir(ruta: Path) -> bool:
