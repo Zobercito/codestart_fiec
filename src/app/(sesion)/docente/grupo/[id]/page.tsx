@@ -91,7 +91,7 @@ export default async function PaginaGrupoDocente({
               ? null
               : `${indicadores.tasaAcierto} %`
           }
-          detalle={`${panorama.intentos.length} intentos en total`}
+          detalle={`${panorama.totalIntentos} intentos en total`}
           tono="coder"
         />
         <Indicador

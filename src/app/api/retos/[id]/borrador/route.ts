@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { crearClienteSupabase } from "@/lib/supabase/server";
+import { consumirLimite } from "@/lib/api/limite";
+
+const LIMITE_PETICION = 64 * 1024;
+const LIMITE_CODIGO = 20_000;
+
+const esquemaBorrador = z
+  .object({ codigo: z.string().max(LIMITE_CODIGO) })
+  .strict();
 
 /**
  * Autoguardado del codigo que el estudiante esta escribiendo (RF11).
@@ -24,27 +33,42 @@ export async function PUT(
     return NextResponse.json({ error: "No hay sesión activa." }, { status: 401 });
   }
 
-  let cuerpo: { codigo?: string };
+  if (!consumirLimite(`borrador:${user.id}`, 120, 60_000)) {
+    return NextResponse.json(
+      { error: "Demasiados autoguardados seguidos." },
+      { status: 429 },
+    );
+  }
+
+  let cuerpo: z.infer<typeof esquemaBorrador>;
   try {
-    cuerpo = await peticion.json();
+    const texto = await peticion.text();
+    if (texto.length > LIMITE_PETICION) {
+      return NextResponse.json(
+        { error: "El borrador es demasiado grande." },
+        { status: 413 },
+      );
+    }
+    cuerpo = esquemaBorrador.parse(JSON.parse(texto));
   } catch {
     return NextResponse.json({ error: "Peticion invalida." }, { status: 400 });
   }
-
-  const codigo = String(cuerpo.codigo ?? "");
 
   const { error } = await supabase.from("codigos").upsert(
     {
       usuario_id: user.id,
       reto_id: id,
-      codigo,
+      codigo: cuerpo.codigo,
       actualizado_en: new Date().toISOString(),
     },
     { onConflict: "usuario_id,reto_id" },
   );
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "No se pudo guardar el borrador." },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ ok: true });

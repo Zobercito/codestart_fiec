@@ -1,1 +1,13 @@
 .codegraph
+.env
+.env.*
+!.env.example
+node_modules
+.next
+test-results
+playwright-report
+respaldos
+.agents
+.opencode
+skills-lock.json
+tsconfig.tsbuildinfo

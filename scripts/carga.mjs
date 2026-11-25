@@ -21,6 +21,7 @@ import http from "node:http";
 import { URL } from "node:url";
 import { performance } from "node:perf_hooks";
 import { createServerClient } from "@supabase/ssr";
+import { idGrupoPorCodigo, idRetoPorEnunciado } from "./ayudas-datos.mjs";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -35,8 +36,8 @@ const VUS = Number(process.env.CARGA_VUS ?? 100);
 const DURACION_MS = Number(process.env.CARGA_DURACION_MS ?? 300_000);
 const PIENSA_MS = Number(process.env.CARGA_PIENSA_MS ?? 400);
 
-const GRUPO_DEMO = "ec7185c1-3fff-4e84-aa72-c2e867101e6c";
-const RETO_DEMO = "a3c0bec8-453b-4b1d-bcc3-92445276e359";
+const GRUPO_DEMO = await idGrupoPorCodigo("FIEC-V26-8QK4");
+const RETO_DEMO = await idRetoPorEnunciado("Clasifica la edad");
 
 const RECORRIDOS = {
   estudiante: [

@@ -61,7 +61,7 @@ export function VisorAnatomia({
                 encendida ? "bg-amber-100 shadow-[inset_3px_0_0_#F5B014]" : ""
               }`}
             >
-              <span className="w-5 shrink-0 select-none text-right text-slate-500">
+              <span className="w-5 shrink-0 select-none text-right text-slate-400">
                 {i + 1}
               </span>
               <span className="whitespace-pre">

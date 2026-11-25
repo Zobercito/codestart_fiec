@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { idRetoPorEnunciado } from "./ayudas-datos";
 import { ejecutarSql } from "./ayudas-db";
 
 /**
@@ -9,7 +10,11 @@ import { ejecutarSql } from "./ayudas-db";
 
 const CORREO = "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.DEMO_PASSWORD ?? "";
-const RETO_CODIGO = "a3c0bec8-453b-4b1d-bcc3-92445276e359";
+let RETO_CODIGO = "";
+
+test.beforeAll(async () => {
+  RETO_CODIGO = await idRetoPorEnunciado("Clasifica la edad");
+});
 
 const CODIGO_CORRECTO = `#include <stdio.h>
 

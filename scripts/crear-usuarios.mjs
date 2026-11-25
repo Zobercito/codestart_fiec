@@ -33,7 +33,7 @@ const usuarios = [
 // Grupo institucional del docente. Todo estudiante creado por este
 // script queda inscrito en él, además de poder unirse con el código.
 const GRUPO = {
-  nombre: "Sección 1 · Verano 2026",
+  nombre: "Sección 1 · 2026",
   codigo: "FIEC-V26-8QK4",
   periodo_inicio: "2026-07-06",
   periodo_fin: "2026-08-14",
@@ -108,8 +108,42 @@ for (const u of usuarios) {
     console.error(`  ERROR perfil ${u.correo}: ${p.status} ${cuerpo.slice(0, 200)}`);
     process.exit(1);
   }
+  if (!id) {
+    console.error(`  ERROR: no se pudo resolver el id de ${u.correo}`);
+    process.exit(1);
+  }
   ids.set(u.correo, id);
+
+  // El proxy usa `user_metadata.rol` para elegir la pantalla de inicio.
+  // Se conserva el resto del metadato y se sincroniza con el perfil.
+  const actual = await fetch(`${url}/auth/v1/admin/users/${id}`, {
+    headers: cabecerasAuth,
+  });
+  if (!actual.ok) {
+    console.error(`  ERROR metadato ${u.correo}: ${actual.status}`);
+    process.exit(1);
+  }
+  const datosUsuario = await actual.json();
+  const metadatos = {
+    ...(datosUsuario.user?.user_metadata ?? datosUsuario.user_metadata ?? {}),
+    nombre: u.nombre,
+    rol: u.rol,
+  };
+  const sincronizacion = await fetch(`${url}/auth/v1/admin/users/${id}`, {
+    method: "PUT",
+    headers: cabecerasAuth,
+    body: JSON.stringify({ user_metadata: metadatos }),
+  });
+  if (!sincronizacion.ok) {
+    const cuerpo = await sincronizacion.text();
+    console.error(
+      `  ERROR metadato ${u.correo}: ${sincronizacion.status} ${cuerpo.slice(0, 200)}`,
+    );
+    process.exit(1);
+  }
+
   console.log(`  perfil  ${u.rol.padEnd(9)} ${u.correo}`);
+  console.log(`  metadato ${u.rol.padEnd(9)} ${u.correo}`);
 }
 
 // ── Enlace docente ↔ estudiantes ───────────────────────────────

@@ -46,6 +46,12 @@ export async function crearClienteSupabase() {
           }
         },
       },
+      cookieOptions: {
+        path: "/",
+        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.VERCEL === "1",
+      },
     },
   );
 }

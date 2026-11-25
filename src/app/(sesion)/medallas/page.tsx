@@ -7,7 +7,7 @@ import {
   obtenerInsignia,
   type InsigniaCatalogo,
 } from "@/lib/insignias/catalogo";
-import { formatearFecha } from "@/lib/fechas";
+import { fechaDeTimestampEnPanama, formatearFecha } from "@/lib/fechas";
 
 export const metadata = {
   title: "Mis medallas",
@@ -93,7 +93,7 @@ export default async function PaginaMedallas() {
                 </p>
                 {ganada ? (
                   <p className="mt-2 text-[10.5px] font-bold uppercase tracking-wider text-coder-700">
-                    Ganada el {formatearFecha(ganada.fecha.slice(0, 10))}
+                    Ganada el {formatearFecha(fechaDeTimestampEnPanama(ganada.fecha))}
                   </p>
                 ) : (
                   <p className="mt-2 text-[10.5px] font-bold uppercase tracking-wider text-slate-500">

@@ -260,10 +260,23 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "cambiar_rol":
+            "aciertos_reto_grupo":
+{ Args: { "p_alumnos": (string)[] }; Returns: {
+              "reto_id": string,"usuario_id": string
+            }[]
+                           },
+"agregados_intentos_grupo":
+{ Args: { "p_alumnos": (string)[] }; Returns: {
+              "aciertos": number,"total": number,"ultima_fecha": string,"ultimo_reto": string,"usuario_id": string
+            }[]
+                           },
+"cambiar_rol":
 { Args: { "p_rol": Database["public"]['Enums']["rol_usuario"],"p_usuario": string }; Returns: undefined
                            },
 "es_admin":
+{ Args: { "usuario": string }; Returns: boolean
+                           },
+"es_docente":
 { Args: { "usuario": string }; Returns: boolean
                            },
 "es_docente_de":

@@ -28,8 +28,8 @@ if (!url) {
 }
 
 const resultado = spawnSync(
-  "supabase",
-  ["gen", "types", "typescript", "--db-url", url, "--schema", "public"],
+  "npx",
+  ["--yes", "supabase", "gen", "types", "typescript", "--db-url", url, "--schema", "public"],
   { encoding: "utf8" },
 );
 

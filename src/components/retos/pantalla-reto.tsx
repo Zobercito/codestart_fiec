@@ -30,12 +30,14 @@ export type DatosReto = {
     enunciado: string;
     enunciado_detalle: string | null;
     pistas: Pista[];
+    totalPistas: number;
     casos: Caso[];
     puntos: number;
     intentos_maximos: number;
     codigoInicial: string;
   };
   borrador: { codigo: string; pistas_usadas: number } | null;
+  pistasUsadas: number;
   intentosHechos: number;
   leccion: {
     titulo: string;
@@ -59,10 +61,12 @@ type RespuestaVerificacion = {
 };
 
 export function PantallaReto({ datos }: { datos: DatosReto }) {
-  const { reto, borrador, intentosHechos, leccion, fragmento, modoClase = false } = datos;
+  const { reto, borrador, intentosHechos, leccion, fragmento, modoClase = false, pistasUsadas: pistasIniciales } = datos;
 
   const [codigo, setCodigo] = useState(borrador?.codigo || reto.codigoInicial);
-  const [pistasUsadas, setPistasUsadas] = useState(borrador?.pistas_usadas ?? 0);
+  const [pistasUsadas, setPistasUsadas] = useState(pistasIniciales);
+  const [pistas, setPistas] = useState<Pista[]>(reto.pistas);
+  const [errorPista, setErrorPista] = useState<string | null>(null);
   const [respuesta, setRespuesta] = useState<RespuestaVerificacion | null>(null);
   const [verificando, setVerificando] = useState(false);
   const [pestana, setPestana] = useState<"salida" | "retro">("salida");
@@ -134,25 +138,36 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
 
   /* ── pedir una pista ─────────────────────────────────────── */
   async function pedirPista() {
-    if (pistasUsadas >= reto.pistas.length) return;
+    if (pistasUsadas >= reto.totalPistas) return;
+    setErrorPista(null);
     // L2: el contador lo incrementa el servidor, no el cliente.
     try {
       const r = await fetch(`/api/retos/${reto.id}/pista`, {
         method: "POST",
       });
       const datosPista = await r.json();
+      if (!r.ok) {
+        setErrorPista(datosPista.error ?? "No se pudo revelar la pista.");
+        return;
+      }
       if (typeof datosPista.pistasUsadas === "number") {
         setPistasUsadas(datosPista.pistasUsadas);
       }
+      if (datosPista.pista) {
+        setPistas((actuales) =>
+          actuales.some((pista) => pista.nivel === datosPista.pista.nivel)
+            ? actuales
+            : [...actuales, datosPista.pista],
+        );
+      }
     } catch {
-      // Sin conexión: no se revela la pista para no descontar sin registrar.
+      setErrorPista("No se pudo conectar con el servidor.");
     }
   }
 
   const resultado = respuesta?.resultado;
   const aciertos = resultado?.casos.filter((c) => c.coincide).length ?? 0;
   const totalCasos = resultado?.casos.length ?? 0;
-  const pistasReveladas = reto.pistas.slice(0, pistasUsadas);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -250,7 +265,7 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
               Pistas
             </h2>
             <div className="mt-2 space-y-2">
-              {pistasReveladas.map((pista) => (
+              {pistas.map((pista) => (
                 <div
                   key={pista.nivel}
                   className="rounded-xl bg-up-50 p-3 text-[11.5px] leading-relaxed text-up-900 ring-1 ring-up-200"
@@ -260,7 +275,7 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
                 </div>
               ))}
 
-              {pistasUsadas < reto.pistas.length ? (
+              {pistasUsadas < reto.totalPistas ? (
                 <button
                   type="button"
                   onClick={pedirPista}
@@ -273,6 +288,12 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
                     −10 pts
                   </span>
                 </button>
+              ) : null}
+
+              {errorPista ? (
+                <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-[11.5px] font-medium text-red-700 ring-1 ring-red-200">
+                  {errorPista}
+                </p>
               ) : null}
             </div>
           </section>
@@ -314,7 +335,7 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
           </div>
         ) : (
           <div className="mono h-[380px] shrink-0 overflow-auto bg-slate-950 px-4 py-3 text-[12px] leading-relaxed text-slate-300 lg:h-auto lg:min-h-0 lg:flex-1">
-            <p className="text-slate-500">
+            <p className="text-slate-400">
               # Casos de prueba del reto. Son los que el servidor usa para
               verificar la solucion.
             </p>
@@ -323,8 +344,8 @@ export function PantallaReto({ datos }: { datos: DatosReto }) {
                 const estado = resultado?.casos.find((c) => c.nombre === caso.nombre);
                 return (
                   <li key={caso.nombre}>
-                    <span className="text-slate-500">caso</span> {caso.nombre}
-                    <span className="text-slate-500"> → espera </span>
+                    <span className="text-slate-400">caso</span> {caso.nombre}
+                    <span className="text-slate-400"> → espera </span>
                     <span className="text-slate-100">{caso.salida_esperada}</span>
                     {estado ? (
                       <span className={estado.coincide ? "text-coder-400" : "text-red-400"}>

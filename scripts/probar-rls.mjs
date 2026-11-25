@@ -147,6 +147,16 @@ async function principal() {
   await cambiarRol(docentes.a, "docente");
   await cambiarRol(docentes.b, "docente");
 
+  const authDocente = await fetch(`${url}/auth/v1/admin/users/${docentes.a}`, {
+    headers: cabeceras(service),
+  });
+  const datosAuthDocente = await authDocente.json();
+  comprobar(
+    (datosAuthDocente.user_metadata ?? datosAuthDocente.user?.user_metadata)
+      ?.rol === "docente",
+    "cambiar_rol sincroniza user_metadata.rol",
+  );
+
   const modulos = filas(
     await rest("modulos?select=id,orden&order=orden.asc&limit=1"),
   );
@@ -495,6 +505,15 @@ async function principal() {
     "estudiante no puede leer retos.reglas (las respuestas)",
   );
 
+  const pistasOcultas = await rest(
+    `retos?select=pistas&id=eq.${retoId}`,
+    { token: token.estA },
+  );
+  comprobar(
+    !pistasOcultas.ok,
+    "estudiante no puede leer retos.pistas (las pistas)",
+  );
+
   const retoPublico = await rest(
     `retos?select=id,enunciado,tipo&id=eq.${retoId}`,
     { token: token.estA },
@@ -502,6 +521,30 @@ async function principal() {
   comprobar(
     retoPublico.ok && filas(retoPublico).length > 0,
     "estudiante sí lee las columnas públicas del reto",
+  );
+
+  const agregadosA = await rest("rpc/agregados_intentos_grupo", {
+    metodo: "POST",
+    token: token.estA,
+    cuerpo: { p_alumnos: [estudiantes.a, estudiantes.b] },
+  });
+  comprobar(
+    agregadosA.ok &&
+      filas(agregadosA).length === 1 &&
+      filas(agregadosA)[0]?.usuario_id === estudiantes.a,
+    "el agregado del grupo respeta el RLS y no ve intentos de B",
+  );
+
+  const aciertosA = await rest("rpc/aciertos_reto_grupo", {
+    metodo: "POST",
+    token: token.estA,
+    cuerpo: { p_alumnos: [estudiantes.a, estudiantes.b] },
+  });
+  comprobar(
+    aciertosA.ok &&
+      filas(aciertosA).length === 1 &&
+      filas(aciertosA)[0]?.usuario_id === estudiantes.a,
+    "los retos aprobados respetan el RLS y no ven los de B",
   );
 
   const intentoPropio = await rest("intentos", {

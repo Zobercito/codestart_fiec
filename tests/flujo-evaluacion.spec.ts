@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { idRetoPorEnunciado } from "./ayudas-datos";
 
 /**
  * Retos de ordenamiento y autocompletado, y evaluaciones.
@@ -11,8 +12,13 @@ import { test, expect, type Page } from "@playwright/test";
 const CORREO = "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.DEMO_PASSWORD ?? "";
 
-const ORDENAMIENTO = "6b8faf30-2856-40c3-bc68-d0781ebfd3f3";
-const AUTOCOMPLETADO = "7a112d4e-a13e-4c51-a20c-e371e744fefc";
+let ORDENAMIENTO = "";
+let AUTOCOMPLETADO = "";
+
+test.beforeAll(async () => {
+  ORDENAMIENTO = await idRetoPorEnunciado("Ordena el ciclo while");
+  AUTOCOMPLETADO = await idRetoPorEnunciado("Completa el ciclo que imprime");
+});
 
 async function entrar(page: Page) {
   await page.goto("/login");

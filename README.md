@@ -2,7 +2,7 @@
 
 <h1>CodeStart FIEC</h1>
 
-<p><strong>Plataforma de apoyo al Curso Propedéutico · Versión beta</strong></p>
+<p><strong>Plataforma de apoyo al Curso Propedéutico · Versión 1.0</strong></p>
 
 <p>Universidad de Panamá<br>
 Facultad de Informática, Electrónica y Comunicación</p>
@@ -32,7 +32,7 @@ Facultad de Informática, Electrónica y Comunicación</p>
 >
 > La **aplicación real** de CodeStart FIEC: ocho módulos con lecciones interactivas, retos de C con
 > validación estática, evaluaciones, medallas y panel de seguimiento para el docente, construida con
-> Next.js y Supabase. Esta es la **versión beta** (`v0.2.0-beta`).
+> Next.js y Supabase. Esta es la **versión 1.0** (`v1.0.0`).
 >
 > El **prototipo de diseño** vive aparte, en
 > **[`Zobercito/codestart-fiec-mockup`](https://github.com/Zobercito/codestart-fiec-mockup)** ·
@@ -141,14 +141,14 @@ autocompletado y 1 de código), más la **autoevaluación de cada módulo** (5 p
 
 | | |
 |---|---|
-| **Versión** | Beta `v0.2.0-beta` |
+| **Versión** | `v1.0.0` |
 | **Base de datos** | 11 tablas con políticas de RLS por rol y por grupo |
 | **Contenido** | Ocho módulos en MDX, del primero al taller de retos y la evaluación final |
-| **Pruebas** | 33 unitarias (Vitest) y 84 de extremo a extremo en escritorio, tableta y Firefox; matriz de RLS y auditoría de contraste |
+| **Pruebas** | 38 unitarias (Vitest) y 93 de extremo a extremo en escritorio, tableta y Firefox; matriz de RLS (32 comprobaciones) y auditoría de contraste |
 | **Accesibilidad** | Contraste WCAG 2.1 AA verificado en 7 rutas: 0 fallos; revisión manual pendiente |
-| **Rendimiento** | Con red limitada (Fast 3G, CPU 4×): LCP de 1,1–1,3 s. Con 100 usuarios concurrentes **no cumple RNF08**; el detalle está en `docs/INFORME_PRUEBAS.md` |
-| **Fuera de la beta** | Exportación CSV (RF17), editor de contenidos (RF18), interfaz de administrador y ejecución real de C |
-| **Pendiente para la 1.0** | Validación con estudiantes (RNF04), WebKit y Edge, y correcciones de la validación |
+| **Rendimiento** | Medición local con Fast 3G y CPU 4×: lección 1,18 s; dashboard 2,67 s; editor 4,65 s. **RNF02 no está cerrado** y con 100 usuarios concurrentes **no cumple RNF08**; el detalle está en `docs/INFORME_A5.md` |
+| **Fuera de la 1.0** | Exportación CSV (RF17), editor de contenidos (RF18), interfaz de administrador y ejecución real de C |
+| **No verificado / pendiente** | RNF04 (usabilidad), RNF05 (monitor), RNF08 (carga), WebKit/Edge, accesibilidad manual y contenido real de los módulos 1, 2 y 4 |
 
 ---
 
@@ -167,12 +167,12 @@ cuentas: `DEMO_PASSWORD=... npm run db:usuarios`.
 No hay registro público. Estas cuentas simulan las cuentas institucionales que el docente crea
 para el curso; los estudiantes solo inician sesión con la que se les asigna.
 
-El grupo de demostración es **Sección 1 · Verano 2026** y su código de inscripción es
+El grupo de demostración es **Sección 1 · 2026** y su código de inscripción es
 `FIEC-V26-8QK4`. El script de cuentas inscribe automáticamente a cada estudiante en ese grupo,
 de modo que su avance e intentos aparecen en el panel del docente; el código sigue disponible
 para inscripciones manuales. Los datos son de prueba: no escribas información personal real.
 
-**Recorrido sugerido para ver la beta:**
+**Recorrido sugerido para ver la aplicación:**
 
 1. Como estudiante: abre un módulo, entra a una lección, resuelve un reto y mira cómo se actualiza
    el avance y aparece la medalla. Al agotar los intentos de un reto, la corrección sigue
@@ -273,7 +273,7 @@ El caso espera «Mayor de edad».
 ```
 
 ```bash
-npm test        # 33 pruebas unitarias: motor, progreso, evaluación y retos
+npm test        # 38 pruebas unitarias: motor, progreso, evaluación y retos
 ```
 
 ---
@@ -336,6 +336,11 @@ recrea desde cero, ejecuta `vercel link` antes de `vercel --prod`.
 - **[Informe de pruebas](docs/INFORME_PRUEBAS.md)** — qué se ejecutó, con qué resultado y dónde está la evidencia.
 - **[Informe del Avance 4](docs/INFORME_A4.md)** — estado de la beta, pendientes, riesgos y plan.
 - **[Protocolo de usabilidad](docs/PROTOCOLO_USABILIDAD.md)** — tareas, métricas y umbrales de RNF04.
+- **[Manuales](docs/manuales/README.md)** — estudiante, docente, administrador y técnico.
+- **[Guía de mantenimiento](docs/MANTENIMIENTO.md)** — contenido, respaldos, monitorización e incidentes.
+- **[Informe de validación](docs/INFORME_VALIDACION.md)** — aceptación técnica y límites declarados.
+- **[Informe A5](docs/INFORME_A5.md)** — cierre del avance y pendientes.
+- **[Acta de aceptación](docs/ACTA_ACEPTACION.md)** — plantilla para firma.
 
 ## Repositorio del prototipo
 

@@ -16,10 +16,12 @@ export type DatosOrdenamiento = {
     enunciado_detalle: string | null;
     elementos: ElementoOrdenamiento[];
     pistas: Pista[];
+    totalPistas: number;
     puntos: number;
     intentos_maximos: number;
   };
   intentosHechos: number;
+  pistasUsadas: number;
   leccion: {
     titulo: string;
     orden: number;
@@ -45,9 +47,11 @@ export function PantallaOrdenamiento({
 }: {
   datos: DatosOrdenamiento;
 }) {
-  const { reto, intentosHechos, leccion, modoClase = false } = datos;
+  const { reto, intentosHechos, leccion, modoClase = false, pistasUsadas: pistasIniciales } = datos;
   const [orden, setOrden] = useState(reto.elementos);
-  const [pistasUsadas, setPistasUsadas] = useState(0);
+  const [pistasUsadas, setPistasUsadas] = useState(pistasIniciales);
+  const [pistas, setPistas] = useState<Pista[]>(reto.pistas);
+  const [errorPista, setErrorPista] = useState<string | null>(null);
   const [respuesta, setRespuesta] = useState<Respuesta | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -62,15 +66,28 @@ export function PantallaOrdenamiento({
   }
 
   async function revelarPista() {
+    if (pistasUsadas >= reto.totalPistas) return;
+    setErrorPista(null);
     // L2: el contador lo incrementa el servidor, no el cliente.
     try {
       const r = await fetch(`/api/retos/${reto.id}/pista`, { method: "POST" });
       const datosPista = await r.json();
+      if (!r.ok) {
+        setErrorPista(datosPista.error ?? "No se pudo revelar la pista.");
+        return;
+      }
       if (typeof datosPista.pistasUsadas === "number") {
         setPistasUsadas(datosPista.pistasUsadas);
       }
+      if (datosPista.pista) {
+        setPistas((actuales) =>
+          actuales.some((pista) => pista.nivel === datosPista.pista.nivel)
+            ? actuales
+            : [...actuales, datosPista.pista],
+        );
+      }
     } catch {
-      // Sin conexión: no se revela la pista.
+      setErrorPista("No se pudo conectar con el servidor.");
     }
   }
 
@@ -171,7 +188,7 @@ export function PantallaOrdenamiento({
 
       {!modoClase ? (
         <div className="mt-5 space-y-2">
-          {reto.pistas.slice(0, pistasUsadas).map((pista) => (
+          {pistas.map((pista) => (
             <div
               key={pista.nivel}
               className="rounded-xl bg-up-50 p-3 text-[12px] leading-relaxed text-up-900 ring-1 ring-up-200"
@@ -180,7 +197,7 @@ export function PantallaOrdenamiento({
               <p className="mt-1">{pista.texto}</p>
             </div>
           ))}
-          {pistasUsadas < reto.pistas.length ? (
+          {pistasUsadas < reto.totalPistas ? (
             <button
               type="button"
               onClick={revelarPista}
@@ -189,6 +206,11 @@ export function PantallaOrdenamiento({
               🔒 Pista {pistasUsadas + 1} · Revelar{" "}
               <span className="font-normal text-slate-600">−10 pts</span>
             </button>
+          ) : null}
+          {errorPista ? (
+            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-[11.5px] font-medium text-red-700 ring-1 ring-red-200">
+              {errorPista}
+            </p>
           ) : null}
         </div>
       ) : null}

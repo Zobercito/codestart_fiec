@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { idRetoPorEnunciado } from "./ayudas-datos";
 
 /**
  * Humo de compatibilidad.
@@ -11,7 +12,11 @@ import { test, expect, type Page } from "@playwright/test";
 
 const ESTUDIANTE = "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.DEMO_PASSWORD ?? "";
-const RETO_ORDENAMIENTO = "6b8faf30-2856-40c3-bc68-d0781ebfd3f3";
+let RETO_ORDENAMIENTO = "";
+
+test.beforeAll(async () => {
+  RETO_ORDENAMIENTO = await idRetoPorEnunciado("Ordena el ciclo while");
+});
 
 async function entrar(page: Page) {
   await page.goto("/login");

@@ -145,7 +145,7 @@ export function FormularioAsignacion({
           rows={3}
           maxLength={280}
           placeholder="Qué deben entregar y para qué"
-          className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-fiec-500 focus:outline-none focus:ring-2 focus:ring-fiec-500/25"
+          className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-500 focus:border-fiec-500 focus:outline-none focus:ring-2 focus:ring-fiec-500/25"
         />
       </div>
 

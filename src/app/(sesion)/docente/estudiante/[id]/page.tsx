@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import {
   exigirDocente,
   obtenerGrupoDelEstudiante,
+  obtenerIntentosEstudiante,
   obtenerPanoramaGrupo,
 } from "@/lib/docente/dal";
-import { formatearFecha } from "@/lib/fechas";
+import { fechaDeTimestampEnPanama, formatearFecha } from "@/lib/fechas";
 import { obtenerInsignia } from "@/lib/insignias/catalogo";
 
 export const instant = false;
@@ -15,20 +16,34 @@ export const metadata = { title: "Estudiante · Panel docente" };
 /** Detalle de un estudiante de uno de los grupos del docente (RF15). */
 export default async function PaginaEstudianteDocente({
   params,
+  searchParams,
 }: PageProps<"/docente/estudiante/[id]">) {
   const { id } = await params;
+  const { offset: offsetParam } = await searchParams;
+  const offset = Math.max(
+    0,
+    Number.parseInt(
+      typeof offsetParam === "string" ? offsetParam : "0",
+      10,
+    ) || 0,
+  );
+
   const perfil = await exigirDocente();
   const grupo = await obtenerGrupoDelEstudiante(perfil, id);
   if (!grupo) notFound();
 
-  const panorama = await obtenerPanoramaGrupo(perfil, grupo.id);
+  const [panorama, pagina] = await Promise.all([
+    obtenerPanoramaGrupo(perfil, grupo.id, grupo),
+    obtenerIntentosEstudiante(perfil, grupo, id, 50, offset),
+  ]);
   if (!panorama) notFound();
 
   const estudiante = panorama.estudiantes.find((e) => e.id === id);
   if (!estudiante) notFound();
 
   const fila = panorama.seguimiento.find((f) => f.id === id);
-  const intentos = panorama.intentos.filter((i) => i.usuario_id === id);
+  const intentosPanorama = panorama.intentos.filter((i) => i.usuario_id === id);
+  const intentos = pagina.filas;
   const insignias = panorama.insignias.filter((i) => i.usuario_id === id);
 
   const estadoPorLeccion = new Map(
@@ -37,7 +52,7 @@ export default async function PaginaEstudianteDocente({
       .map((p) => [p.leccion_id, p.estado]),
   );
 
-  const errores = intentos.filter((intento) => intento.error_detectado);
+  const errores = intentosPanorama.filter((intento) => intento.error_detectado);
 
   return (
     <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 py-6 sm:px-6">
@@ -170,7 +185,7 @@ export default async function PaginaEstudianteDocente({
                           {datos.nombre}
                         </p>
                         <p className="text-[10.5px] text-fiec-900">
-                          {formatearFecha(insignia.fecha.slice(0, 10))}
+                          {formatearFecha(fechaDeTimestampEnPanama(insignia.fecha))}
                         </p>
                       </div>
                     </li>
@@ -200,7 +215,7 @@ export default async function PaginaEstudianteDocente({
                     </p>
                     <p className="mt-0.5">{intento.error_detectado}</p>
                     <p className="mt-0.5 text-[10.5px] text-slate-600">
-                      {formatearFecha(intento.fecha.slice(0, 10))}
+                      {formatearFecha(fechaDeTimestampEnPanama(intento.fecha))}
                     </p>
                   </li>
                 ))}
@@ -234,7 +249,7 @@ export default async function PaginaEstudianteDocente({
                 {intentos.map((intento) => (
                   <tr key={intento.id} className="align-top">
                     <td className="whitespace-nowrap px-3 py-2.5 text-slate-700">
-                      {formatearFecha(intento.fecha.slice(0, 10))}
+                      {formatearFecha(fechaDeTimestampEnPanama(intento.fecha))}
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="font-semibold text-slate-800">
@@ -272,6 +287,34 @@ export default async function PaginaEstudianteDocente({
             </table>
           </div>
         )}
+
+        {pagina.filas.length > 0 && pagina.total > pagina.limite ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11.5px] text-slate-600">
+            <span>
+              Mostrando {pagina.offset + 1}–
+              {Math.min(pagina.offset + pagina.filas.length, pagina.total)} de{" "}
+              {pagina.total} intentos
+            </span>
+            <div className="flex gap-2">
+              {pagina.offset > 0 ? (
+                <Link
+                  href={`?offset=${Math.max(0, pagina.offset - pagina.limite)}`}
+                  className="rounded-lg bg-white px-3 py-1.5 font-bold text-fiec-700 ring-1 ring-slate-300 hover:bg-slate-50"
+                >
+                  ← Anteriores
+                </Link>
+              ) : null}
+              {pagina.offset + pagina.filas.length < pagina.total ? (
+                <Link
+                  href={`?offset=${pagina.offset + pagina.limite}`}
+                  className="rounded-lg bg-white px-3 py-1.5 font-bold text-fiec-700 ring-1 ring-slate-300 hover:bg-slate-50"
+                >
+                  Siguientes →
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </section>
     </main>
   );

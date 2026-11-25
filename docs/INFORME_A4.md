@@ -10,6 +10,10 @@ Facultad de Informática, Electrónica y Comunicación (FIEC), Universidad de Pa
 > **Estado:** las seis fases del avance están implementadas y la batería técnica ejecutada. El
 > detalle reproducible de cada prueba vive en `INFORME_PRUEBAS.md`; lo que no se pudo ejecutar
 > (usabilidad con estudiantes, WebKit y Edge) se declara como no verificado.
+>
+> **Actualización A5 (24/11/2026):** el despliegue ya está activo y la regresión vigente es
+> 38 unitarias, 93 E2E, 32 RLS, seguridad y contraste 0/7. La referencia actual es
+> `docs/INFORME_A5.md` y `docs/AUDITORIA_A5.md`; este informe queda como histórico del A4.
 
 ---
 

@@ -45,3 +45,30 @@ export function formatearFechaCorta(iso: string): string {
   if (!nombreMes) return iso;
   return `${dia} ${nombreMes.slice(0, 3)}`;
 }
+
+/**
+ * Fecha de hoy en la zona del curso (America/Panama), en formato ISO.
+ *
+ * `new Date().toISOString()` usa UTC: a partir de las 19:00 de Panamá ya
+ * es el día siguiente, y una tarea con entrega hoy se marcaba vencida.
+ */
+export function fechaISOEnPanama(fecha = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Panama",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(fecha);
+}
+
+/** Convierte un timestamp ISO a la fecha de Panamá (YYYY-MM-DD). */
+export function fechaDeTimestampEnPanama(iso: string): string {
+  const fecha = new Date(iso);
+  if (Number.isNaN(fecha.getTime())) return iso.slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Panama",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(fecha);
+}

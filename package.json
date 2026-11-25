@@ -1,6 +1,6 @@
 {
   "name": "codestart-fiec",
-  "version": "0.2.0-beta",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:migrate": "supabase db push --linked",
-    "db:seed": "psql \"$SUPABASE_DB_URL\" -v ON_ERROR_STOP=1 -f supabase/seed.sql",
+    "db:seed": "node --env-file=.env.local scripts/sembrar.mjs",
     "db:types": "node --env-file=.env.local scripts/generar-tipos.mjs",
     "db:usuarios": "node --env-file=.env.local scripts/crear-usuarios.mjs",
     "test": "vitest run",
@@ -53,5 +53,5 @@
     "typescript": "^5",
     "vitest": "^5.0.4"
   },
-  "description": "CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC (Avance 4, versión beta)"
+  "description": "CodeStart FIEC — plataforma de apoyo al Curso Propedéutico de la FIEC (v1.0.0)"
 }

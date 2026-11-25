@@ -95,6 +95,17 @@ export default async function PaginaReto({
     moduloOrden: modulo?.orden ?? 1,
   };
 
+  // L2: el navegador solo recibe las pistas ya pagadas. El resto se pide
+  // una a una al endpoint /pista, que es el único que mueve el contador.
+  const pistasTodas = Array.isArray(reto.pistas)
+    ? (reto.pistas as unknown as { nivel: number; texto: string }[])
+    : [];
+  const pistasUsadas = Math.min(
+    borrador?.pistas_usadas ?? 0,
+    pistasTodas.length,
+  );
+  const pistasReveladas = pistasTodas.slice(0, pistasUsadas);
+
   /* ── evaluación: autoevaluación o final ───────────────────── */
   const reglasEvaluacion = reto.reglas as ReglasEvaluacion;
   if (
@@ -141,11 +152,13 @@ export default async function PaginaReto({
             enunciado: reto.enunciado,
             enunciado_detalle: reto.enunciado_detalle,
             elementos: reglas.elementos ?? [],
-            pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
+            pistas: pistasReveladas,
+            totalPistas: pistasTodas.length,
             puntos: reto.puntos,
             intentos_maximos: reto.intentos_maximos,
           },
           intentosHechos: intentos?.length ?? 0,
+          pistasUsadas,
           leccion: datosLeccion,
           modoClase,
         }}
@@ -171,11 +184,13 @@ export default async function PaginaReto({
             enunciado_detalle: reto.enunciado_detalle,
             plantilla: reglas.plantilla ?? "",
             blancos: blancosPublicos,
-            pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
+            pistas: pistasReveladas,
+            totalPistas: pistasTodas.length,
             puntos: reto.puntos,
             intentos_maximos: reto.intentos_maximos,
           },
           intentosHechos: intentos?.length ?? 0,
+          pistasUsadas,
           leccion: datosLeccion,
           modoClase,
         }}
@@ -197,11 +212,13 @@ export default async function PaginaReto({
             enunciado: reto.enunciado,
             enunciado_detalle: reto.enunciado_detalle,
             opciones: reglas.opciones ?? [],
-            pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
+            pistas: pistasReveladas,
+            totalPistas: pistasTodas.length,
             puntos: reto.puntos,
             intentos_maximos: reto.intentos_maximos,
           },
           intentosHechos: intentos?.length ?? 0,
+          pistasUsadas,
           leccion: {
             titulo: leccion.titulo,
             orden: leccion.orden,
@@ -251,13 +268,15 @@ int main() {
       tipo: reto.tipo,
       enunciado: reto.enunciado,
       enunciado_detalle: reto.enunciado_detalle,
-      pistas: (reto.pistas ?? []) as { nivel: number; texto: string }[],
+      pistas: pistasReveladas,
+      totalPistas: pistasTodas.length,
       casos: (reto.casos ?? []) as CasoPrueba[],
       puntos: reto.puntos,
       intentos_maximos: reto.intentos_maximos,
       codigoInicial,
     },
     borrador: borrador ?? null,
+    pistasUsadas,
     intentosHechos: intentos?.length ?? 0,
     leccion: {
       titulo: leccion.titulo,

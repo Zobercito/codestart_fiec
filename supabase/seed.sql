@@ -28,11 +28,11 @@ delete from public.modulos;
 -- ── Grupo y docente ────────────────────────────────────────────
 insert into public.grupos (nombre, codigo_inscripcion, docente_id, periodo_inicio, periodo_fin)
 select
-  'Sección 1 · Verano 2026',
+  'Sección 1 · 2026',
   'FIEC-V26-8QK4',
   p.id,
-  date '2026-07-06',
-  date '2026-08-14'
+  date '2026-11-03',
+  date '2026-12-18'
 from public.perfiles p
 where p.correo = 'docente@up.ac.pa';
 
@@ -166,7 +166,7 @@ where m.orden = 3 and l.orden = 1;
 
 -- ── Asignacion vigente (la que ve el estudiante en el dashboard) ──
 insert into public.asignaciones (grupo_id, modulo_id, descripcion, fecha_entrega, creada_por)
-select g.id, m.id, 'Módulo 4 completo + autoevaluación', date '2026-07-17', p.id
+select g.id, m.id, 'Módulo 4 completo + autoevaluación', date '2026-12-04', p.id
 from public.grupos g
 join public.modulos m on m.orden = 4
 join public.perfiles p on p.correo = 'docente@up.ac.pa'
@@ -175,7 +175,7 @@ where g.codigo_inscripcion = 'FIEC-V26-8QK4';
 -- ── Progreso: lo que el dashboard y el panel docente muestran ────
 -- Módulos 1 a 3 completados; el 4 en progreso; el 5 sin empezar.
 insert into public.progresos (usuario_id, leccion_id, estado, fecha)
-select p.id, l.id, 'completado', timestamptz '2026-07-12 15:00:00+00'
+select p.id, l.id, 'completado', timestamptz '2026-11-10 15:00:00+00'
 from public.perfiles p
 cross join public.lecciones l
 join public.modulos m on m.id = l.modulo_id
@@ -183,7 +183,7 @@ where p.correo = 'francisco.gonzalez@up.ac.pa' and m.orden <= 3;
 
 -- El modulo 4 en curso: una leccion a medias.
 insert into public.progresos (usuario_id, leccion_id, estado, fecha)
-select p.id, l.id, 'en_progreso', timestamptz '2026-07-16 18:30:00+00'
+select p.id, l.id, 'en_progreso', timestamptz '2026-11-20 18:30:00+00'
 from public.perfiles p
 cross join public.lecciones l
 join public.modulos m on m.id = l.modulo_id
@@ -217,7 +217,7 @@ int main() {
     'encontrado', '>'
   ),
   'Con edad = 18 tu condición `edad > 18` es falsa, así que el programa cae al `else` y responde "Menor de edad". El caso espera "Mayor de edad" porque 18 debe entrar en la primera rama.',
-  false, 0, timestamptz '2026-07-16 18:42:00+00'
+  false, 0, timestamptz '2026-11-18 18:42:00+00'
 from public.perfiles p
 cross join public.retos r
 join public.lecciones l on l.id = r.leccion_id
@@ -246,7 +246,7 @@ select p.id, r.id, 'a', $$int main() {
     'encontrado', '>'
   ),
   'Con edad = 18 tu condición `edad > 18` es falsa y el programa responde "Menor de edad". El caso espera "Mayor de edad".',
-  false, 0, timestamptz '2026-07-16 16:05:00+00'
+  false, 0, timestamptz '2026-11-19 16:05:00+00'
 from public.perfiles p
 cross join public.retos r
 where p.correo = 'francisco.gonzalez@up.ac.pa' and r.tipo = 'codigo';
@@ -273,7 +273,7 @@ select p.id, r.id, 'a', $$int main() {
     )
   ),
   null,
-  true, 100, timestamptz '2026-07-15 19:20:00+00'
+  true, 100, timestamptz '2026-11-20 19:20:00+00'
 from public.perfiles p
 cross join public.retos r
 where p.correo = 'francisco.gonzalez@up.ac.pa' and r.tipo = 'codigo';

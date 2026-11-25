@@ -35,20 +35,14 @@ export default async function PaginaModulos() {
           const completado = m.estado === "completado";
           const enCurso = m.estado === "en_progreso";
           const bloqueado = esEstudiante && m.estado === "bloqueado";
+          const clases = `group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition ${
+            enCurso
+              ? "ring-2 ring-fiec-500"
+              : "ring-slate-200"
+          } ${bloqueado ? "cursor-default" : "hover:shadow-md"}`;
 
-          return (
-            <Link
-              key={m.id}
-              href={bloqueado ? "#" : `/modulos/${m.orden}`}
-              aria-disabled={bloqueado}
-              className={`group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition ${
-                enCurso
-                  ? "ring-2 ring-fiec-500"
-                  : bloqueado
-                    ? "ring-slate-200"
-                    : "ring-slate-200 hover:shadow-md"
-              } ${bloqueado ? "pointer-events-none opacity-70" : ""}`}
-            >
+          const contenido = (
+            <>
               <div
                 className={`relative h-24 overflow-hidden ${
                   enCurso
@@ -83,6 +77,11 @@ export default async function PaginaModulos() {
               <div className="flex flex-1 flex-col p-4">
                 <h2 className="text-sm font-bold leading-snug text-slate-800">{m.titulo}</h2>
                 <p className="mt-1 text-[11px] leading-relaxed text-slate-600">{m.descripcion}</p>
+                {bloqueado ? (
+                  <p className="mt-1 text-[10.5px] leading-relaxed text-slate-600">
+                    Termina el módulo anterior para abrirlo.
+                  </p>
+                ) : null}
 
                 <div className="mt-auto pt-3">
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
@@ -107,6 +106,16 @@ export default async function PaginaModulos() {
                   </div>
                 </div>
               </div>
+            </>
+          );
+
+          return bloqueado ? (
+            <div key={m.id} className={clases} aria-disabled="true">
+              {contenido}
+            </div>
+          ) : (
+            <Link key={m.id} href={`/modulos/${m.orden}`} className={clases}>
+              {contenido}
             </Link>
           );
         })}

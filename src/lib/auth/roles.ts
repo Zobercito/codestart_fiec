@@ -19,12 +19,6 @@ export const ROLES: readonly Rol[] = ["estudiante", "docente", "admin"];
 /** Rutas accesibles sin iniciar sesion. */
 export const RUTAS_PUBLICAS = ["/", "/login", "/privacidad", "/api/salud"];
 
-/** Prefijos de ruta que solo puede usar un docente (o un admin). */
-export const PREFIJOS_DE_DOCENTE = ["/docente"];
-
-/** Prefijos de ruta que solo puede usar un admin. */
-export const PREFIJOS_DE_ADMIN = ["/admin"];
-
 /**
  * La pantalla de inicio de cada rol. El docente administra el curso
  * desde su panel; el estudiante, desde su dashboard de progreso.
@@ -66,17 +60,4 @@ export function rolDeJwt(
   verificado: { claims?: { user_metadata?: Record<string, unknown> } } | null | undefined,
 ): Rol | null {
   return rolDeClaims(verificado?.claims);
-}
-
-/** Si el rol puede entrar en esa ruta, segun el prefijo. */
-export function rolAdmiteRuta(rol: Rol | null, ruta: string): boolean {
-  if (rol === "admin") return true;
-
-  const esDeAdmin = PREFIJOS_DE_ADMIN.some((p) => ruta.startsWith(p));
-  if (esDeAdmin) return false;
-
-  const esDeDocente = PREFIJOS_DE_DOCENTE.some((p) => ruta.startsWith(p));
-  if (esDeDocente) return rol === "docente";
-
-  return true;
 }

@@ -9,6 +9,7 @@
 
 import { existsSync } from "node:fs";
 import { chromium } from "playwright";
+import { idRetoPorEnunciado } from "./ayudas-datos.mjs";
 
 // L9: la contraseña demo no vive en el repositorio.
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
@@ -18,10 +19,12 @@ const CORREO = process.env.PRUEBA_CORREO ?? "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.PRUEBA_CLAVE ?? process.env.DEMO_PASSWORD ?? "";
 const REPETICIONES = 3;
 
+const RETO_CODIGO = await idRetoPorEnunciado("Clasifica la edad");
+
 const PANTALLAS = [
   { nombre: "Dashboard", ruta: "/dashboard" },
   { nombre: "Lección", ruta: "/modulos/1/lecciones/1" },
-  { nombre: "Editor de retos", ruta: "/retos/a3c0bec8-453b-4b1d-bcc3-92445276e359" },
+  { nombre: "Editor de retos", ruta: `/retos/${RETO_CODIGO}` },
 ];
 
 const navegador = await chromium.launch();

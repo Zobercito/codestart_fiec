@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { idRetoPorEnunciado } from "./ayudas-datos";
 
 /**
  * El flujo completo del estudiante: entrar, ver el panel, abrir la
@@ -10,10 +11,13 @@ import { test, expect, type Page } from "@playwright/test";
 const CORREO = "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.DEMO_PASSWORD ?? "";
 
-/** El reto de codigo: el que el motor de validacion sabe comprobar. */
-const RETO_CODIGO = "a3c0bec8-453b-4b1d-bcc3-92445276e359";
-/** El reto conceptual (seleccion multiple). */
-const RETO_CONCEPTUAL = "cb534a18-b206-4da7-8128-9533ee7631d3";
+let RETO_CODIGO = "";
+let RETO_CONCEPTUAL = "";
+
+test.beforeAll(async () => {
+  RETO_CODIGO = await idRetoPorEnunciado("Clasifica la edad");
+  RETO_CONCEPTUAL = await idRetoPorEnunciado("¿Qué es una variable?");
+});
 
 const CODIGO_CORRECTO = `#include <stdio.h>
 

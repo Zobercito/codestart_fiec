@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { actualizarSesion } from "@/lib/supabase/proxy";
 import {
   esRutaPublica,
-  rolAdmiteRuta,
   rolDeJwt,
   rutaDeInicio,
 } from "@/lib/auth/roles";
@@ -14,6 +13,12 @@ import {
  * ya viene firmado por Supabase, y redirige sin consultar la base de
  * datos. Es rapido, pero no es una frontera de seguridad: la
  * verificacion real esta en la DAL y en el RLS de Postgres.
+ *
+ * El rol del JWT solo se usa para elegir la pantalla de inicio. No se
+ * bloquean rutas por rol: el JWT puede ir desfasado respecto de
+ * `perfiles.rol` (cambio de rol, token antiguo) y bloquear aquí crearía
+ * un bucle /dashboard <-> /docente. Cada página vuelve a comprobar el
+ * rol con la DAL antes de leer datos.
  */
 export default async function proxy(peticion: NextRequest) {
   const { respuesta, autenticado, verificado } = await actualizarSesion(peticion);
@@ -22,6 +27,12 @@ export default async function proxy(peticion: NextRequest) {
   // Sin sesion: solo se admiten las rutas publicas.
   if (!autenticado) {
     if (esRutaPublica(ruta)) return respuesta;
+    if (ruta.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "No hay sesión activa." },
+        { status: 401 },
+      );
+    }
     const destino = new URL("/login", peticion.url);
     destino.searchParams.set("desde", ruta);
     return NextResponse.redirect(destino);
@@ -35,11 +46,9 @@ export default async function proxy(peticion: NextRequest) {
     return NextResponse.redirect(new URL(rutaDeInicio(rol), peticion.url));
   }
 
-  // Si el rol no permite la ruta, se vuelve al inicio de ese rol.
-  if (!rolAdmiteRuta(rol, ruta)) {
-    return NextResponse.redirect(new URL(rutaDeInicio(rol), peticion.url));
-  }
-
+  // Si el rol no permite la ruta, no se bloquea aquí: el JWT puede ir
+  // desfasado respecto de `perfiles.rol` y se crearía un bucle
+  // /dashboard <-> /docente. Cada página comprueba el rol con la DAL.
   return respuesta;
 }
 

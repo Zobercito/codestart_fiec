@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { fechaDeTimestampEnPanama, formatearFecha } from "@/lib/fechas";
 import type { EstadoSeguimiento, FilaSeguimiento } from "@/lib/docente/dal";
 
 const ESTADOS: Record<
@@ -87,7 +88,7 @@ export function TablaSeguimiento({ filas }: { filas: FilaSeguimiento[] }) {
                   <div className="text-slate-700">{fila.ultimoReto ?? "Sin intentos"}</div>
                   {fila.ultimoIntentoFecha ? (
                     <div className="text-[10.5px] text-slate-600">
-                      {fila.ultimoIntentoFecha.slice(0, 10)}
+                      {formatearFecha(fechaDeTimestampEnPanama(fila.ultimoIntentoFecha))}
                     </div>
                   ) : null}
                 </td>

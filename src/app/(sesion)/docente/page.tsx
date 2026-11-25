@@ -25,7 +25,7 @@ export default async function PaginaDocente({
   const seleccionado =
     grupos.find((g) => g.id === solicitado) ?? grupos[0] ?? null;
   const panorama = seleccionado
-    ? await obtenerPanoramaGrupo(perfil, seleccionado.id)
+    ? await obtenerPanoramaGrupo(perfil, seleccionado.id, seleccionado)
     : null;
 
   if (!panorama) {
@@ -125,7 +125,7 @@ export default async function PaginaDocente({
               ? null
               : `${indicadores.tasaAcierto} %`
           }
-          detalle={`${panorama.intentos.length} intentos registrados`}
+          detalle={`${panorama.totalIntentos} intentos registrados`}
           tono="coder"
         />
         <Indicador

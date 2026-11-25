@@ -6,6 +6,10 @@
 salida real del comando indicado; lo que no se pudo ejecutar se marca como tal y nunca se rellena
 con datos estimados.
 
+> **Actualización A5 (24/11/2026):** la regresión actual es **38 unitarias, 93 E2E, 32 RLS,
+> seguridad y contraste 0/7**. Las cifras de este informe son históricas del A4; la evidencia
+> vigente está en `docs/AUDITORIA_A5.md` y `docs/INFORME_VALIDACION.md`.
+
 ---
 
 ## 1. Alcance y entorno

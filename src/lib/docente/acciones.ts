@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { crearClienteSupabase } from "@/lib/supabase/server";
 import { obtenerMiPerfil } from "@/lib/auth/dal";
+import { fechaISOEnPanama } from "@/lib/fechas";
 
 /**
  * Acciones del panel docente.
@@ -211,7 +212,7 @@ export async function crearAsignacion(
     if (!reto) return { ok: false, error: "El reto no existe." };
   }
 
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = fechaISOEnPanama();
   if (fecha_entrega < hoy) {
     return {
       ok: false,

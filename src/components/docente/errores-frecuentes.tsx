@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { formatearFecha } from "@/lib/fechas";
+import { fechaDeTimestampEnPanama, formatearFecha } from "@/lib/fechas";
 import type { ErrorFrecuente } from "@/lib/docente/dal";
 
 /**
@@ -35,7 +35,7 @@ export function ErroresFrecuentes({ errores }: { errores: ErrorFrecuente[] }) {
                 {error.casos} {error.casos === 1 ? "caso" : "casos"} en{" "}
                 {error.estudiantes}{" "}
                 {error.estudiantes === 1 ? "estudiante" : "estudiantes"} ·{" "}
-                {formatearFecha(error.ultimaFecha.slice(0, 10))}
+                {formatearFecha(fechaDeTimestampEnPanama(error.ultimaFecha))}
               </p>
               <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
                 <Link

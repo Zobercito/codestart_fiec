@@ -94,7 +94,7 @@ export default async function PaginaLeccion({
                   ? "bg-coder-100 text-coder-700"
                   : estado === "en_progreso"
                     ? "bg-fiec-50 text-fiec-700"
-                    : "bg-slate-100 text-slate-500"
+                    : "bg-slate-100 text-slate-600"
               }`}
             >
               {estado === "completado" ? "✓ Vista" : estado === "en_progreso" ? "● A medias" : "○ Sin ver"}

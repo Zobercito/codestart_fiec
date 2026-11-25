@@ -75,7 +75,7 @@ export function SimuladorMemoria({
               key={c.indice}
               className="rounded-xl border-2 border-dashed border-slate-300 bg-white p-3 text-center"
             >
-              <div className="text-[11px] font-semibold text-slate-400">{c.indice}</div>
+              <div className="text-[11px] font-semibold text-slate-600">{c.indice}</div>
               <div className="mt-1 font-mono text-[15px] font-extrabold text-slate-900">
                 {c.valor}
               </div>
@@ -113,7 +113,7 @@ export function SimuladorMemoria({
       {/* La linea que se esta ejecutando */}
       {paso > 0 && pasos[paso - 1].length > 0 ? (
         <div className="mono mt-3 overflow-x-auto rounded-xl bg-slate-900 px-3.5 py-2.5 text-[12px] text-slate-300 ring-1 ring-slate-800">
-          <span className="text-slate-500">$</span> {pasos[paso - 1][0].paso}
+          <span className="text-slate-400">$</span> {pasos[paso - 1][0].paso}
         </div>
       ) : null}
     </section>

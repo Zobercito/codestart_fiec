@@ -137,9 +137,30 @@ export type PanoramaGrupo = {
   asignaciones: AsignacionResumen[];
   modulos: ModuloCurso[];
   intentos: IntentoResumen[];
+  totalIntentos: number;
   insignias: InsigniaResumen[];
   progresos: ProgresoResumen[];
   hoy: string;
+};
+
+export type AgregadoIntento = {
+  usuario_id: string;
+  total: number;
+  aciertos: number;
+  ultimo_reto: string;
+  ultima_fecha: string;
+};
+
+export type AciertoReto = {
+  usuario_id: string;
+  reto_id: string;
+};
+
+export type PaginaIntentos = {
+  filas: IntentoResumen[];
+  total: number;
+  limite: number;
+  offset: number;
 };
 
 export type OpcionesAsignacion = {
@@ -159,6 +180,9 @@ function primero<T>(valor: Relacion<T> | undefined): T | null {
   if (!valor) return null;
   return Array.isArray(valor) ? (valor[0] ?? null) : valor;
 }
+
+/** Tope de intentos recientes con detalle que se traen al panel. */
+const LIMITE_INTENTOS_RECIENTES = 50;
 
 function textoDeResultado(resultado: Json, clave: string): string | null {
   if (!resultado || typeof resultado !== "object" || Array.isArray(resultado)) {
@@ -305,9 +329,11 @@ export async function obtenerOpcionesAsignacion(): Promise<OpcionesAsignacion> {
 export async function obtenerPanoramaGrupo(
   perfil: Perfil,
   grupoId: string,
+  grupoConocido?: GrupoDocente,
 ): Promise<PanoramaGrupo | null> {
-  const grupo = await obtenerGrupo(perfil, grupoId);
-  if (!grupo) return null;
+  const grupo = grupoConocido ?? (await obtenerGrupo(perfil, grupoId));
+  if (!grupo || grupo.id !== grupoId) return null;
+  if (perfil.rol !== "admin" && grupo.docente_id !== perfil.id) return null;
 
   const supabase = await crearClienteSupabase();
 
@@ -315,6 +341,7 @@ export async function obtenerPanoramaGrupo(
     { data: inscripciones },
     { data: modulos },
     { data: lecciones },
+    { data: retos },
     { data: fecha },
   ] = await Promise.all([
     supabase
@@ -326,6 +353,7 @@ export async function obtenerPanoramaGrupo(
       .from("lecciones")
       .select("id, modulo_id, titulo, orden")
       .order("orden"),
+    supabase.from("retos").select("id, enunciado"),
     supabase.rpc("fecha_actual"),
   ]);
 
@@ -344,6 +372,20 @@ export async function obtenerPanoramaGrupo(
 
   const ids = estudiantes.map((e) => e.id);
   const hoy = typeof fecha === "string" ? fecha : "";
+
+  // RNF08: los totales se calculan en Postgres; no se traen todas las
+  // filas de intentos para contarlas en Node. La lista pesada de abajo
+  // queda limitada a los últimos 50.
+  let agregados: AgregadoIntento[] = [];
+  let aciertosReto: AciertoReto[] = [];
+  if (ids.length > 0) {
+    const [respuestaAgregados, respuestaAciertos] = await Promise.all([
+      supabase.rpc("agregados_intentos_grupo", { p_alumnos: ids }),
+      supabase.rpc("aciertos_reto_grupo", { p_alumnos: ids }),
+    ]);
+    agregados = (respuestaAgregados.data ?? []) as AgregadoIntento[];
+    aciertosReto = (respuestaAciertos.data ?? []) as AciertoReto[];
+  }
 
   // Las asignaciones se consultan siempre: un grupo recién creado puede
   // tener una tarea asignada aunque todavía no tenga estudiantes.
@@ -368,7 +410,8 @@ export async function obtenerPanoramaGrupo(
               "id, usuario_id, reto_id, acierto, error_detectado, resultado, fecha, reto:retos(id, enunciado, leccion:lecciones(modulo_id, titulo, modulo:modulos(titulo, orden)))",
             )
             .in("usuario_id", ids)
-            .order("fecha", { ascending: false }),
+            .order("fecha", { ascending: false })
+            .limit(LIMITE_INTENTOS_RECIENTES),
           supabase
             .from("insignias")
             .select("usuario_id, tipo, descripcion, fecha")
@@ -427,11 +470,17 @@ export async function obtenerPanoramaGrupo(
     };
   });
 
-  const intentosPorUsuario = new Map<string, IntentoResumen[]>();
-  for (const intento of intentosResumen) {
-    const actual = intentosPorUsuario.get(intento.usuario_id) ?? [];
-    actual.push(intento);
-    intentosPorUsuario.set(intento.usuario_id, actual);
+  const agregadosPorUsuario = new Map(
+    agregados.map((agregado) => [agregado.usuario_id, agregado]),
+  );
+  const tituloPorReto = new Map(
+    (retos ?? []).map((reto) => [reto.id, reto.enunciado]),
+  );
+  const aciertosPorUsuarioReto = new Map<string, Set<string>>();
+  for (const acierto of aciertosReto) {
+    const actual = aciertosPorUsuarioReto.get(acierto.usuario_id) ?? new Set();
+    actual.add(acierto.reto_id);
+    aciertosPorUsuarioReto.set(acierto.usuario_id, actual);
   }
 
   const insigniasResumen: InsigniaResumen[] = (insignias ?? []).map((insignia) => ({
@@ -491,8 +540,8 @@ export async function obtenerPanoramaGrupo(
     }
 
     if (asignacion.reto_id) {
-      return (intentosPorUsuario.get(usuarioId) ?? []).some(
-        (intento) => intento.reto_id === asignacion.reto_id && intento.acierto,
+      return (
+        aciertosPorUsuarioReto.get(usuarioId)?.has(asignacion.reto_id) ?? false
       );
     }
 
@@ -515,9 +564,16 @@ export async function obtenerPanoramaGrupo(
   const seguimiento: FilaSeguimiento[] = estudiantes.map((estudiante) => {
     const completadas = completadasPorUsuario.get(estudiante.id)?.size ?? 0;
     const avance = totalLecciones > 0 ? Math.round((completadas / totalLecciones) * 100) : 0;
-    const suyos = intentosPorUsuario.get(estudiante.id) ?? [];
-    const aciertos = suyos.filter((intento) => intento.acierto).length;
-    const ultimo = suyos[0] ?? null;
+    const agregado = agregadosPorUsuario.get(estudiante.id);
+    const totalIntentosEstudiante = Number(agregado?.total ?? 0);
+    const aciertosEstudiante = Number(agregado?.aciertos ?? 0);
+    const ultimo = agregado?.ultima_fecha
+      ? {
+          fecha: agregado.ultima_fecha,
+          reto_titulo:
+            tituloPorReto.get(agregado.ultimo_reto ?? "") ?? "Reto",
+        }
+      : null;
 
     const atrasado = asignacionesBase.some(
       (asignacion) =>
@@ -536,7 +592,7 @@ export async function obtenerPanoramaGrupo(
     });
 
     let estado: EstadoSeguimiento;
-    if (completadas === 0 && suyos.length === 0) {
+    if (completadas === 0 && totalIntentosEstudiante === 0) {
       estado = "sin_actividad";
     } else if (atrasado) {
       estado = "atrasado";
@@ -559,8 +615,8 @@ export async function obtenerPanoramaGrupo(
         : null,
       ultimoReto: ultimo?.reto_titulo ?? null,
       ultimoIntentoFecha: ultimo?.fecha ?? null,
-      intentos: suyos.length,
-      acierto: porcentaje(aciertos, suyos.length),
+      intentos: totalIntentosEstudiante,
+      acierto: porcentaje(aciertosEstudiante, totalIntentosEstudiante),
       insignias: insigniasPorUsuario.get(estudiante.id) ?? 0,
     };
   });
@@ -585,8 +641,14 @@ export async function obtenerPanoramaGrupo(
   }
 
   const atrasados = seguimiento.filter((fila) => fila.estado === "atrasado").length;
-  const totalIntentos = intentosResumen.length;
-  const totalAciertos = intentosResumen.filter((intento) => intento.acierto).length;
+  const totalIntentos = agregados.reduce(
+    (acc, agregado) => acc + Number(agregado.total),
+    0,
+  );
+  const totalAciertos = agregados.reduce(
+    (acc, agregado) => acc + Number(agregado.aciertos),
+    0,
+  );
 
   return {
     grupo,
@@ -603,6 +665,7 @@ export async function obtenerPanoramaGrupo(
     asignaciones: asignacionesResumen,
     modulos: modulosCurso,
     intentos: intentosResumen,
+    totalIntentos,
     insignias: insigniasResumen,
     progresos: progresosResumen,
     hoy,
@@ -614,6 +677,72 @@ export async function obtenerFechaActual(): Promise<string> {
   const supabase = await crearClienteSupabase();
   const { data } = await supabase.rpc("fecha_actual");
   return typeof data === "string" ? data : "";
+}
+
+/**
+ * Página de intentos de un estudiante de uno de los grupos del docente.
+ *
+ * La tabla de detalle no debe crecer sin límite. Se pide una página de
+ * 50 y el total aparte (`count: exact`) para poder paginar.
+ */
+export async function obtenerIntentosEstudiante(
+  perfil: Perfil,
+  grupo: GrupoDocente,
+  estudianteId: string,
+  limite = LIMITE_INTENTOS_RECIENTES,
+  offset = 0,
+): Promise<PaginaIntentos> {
+  const vacia: PaginaIntentos = {
+    filas: [],
+    total: 0,
+    limite,
+    offset: Math.max(0, offset),
+  };
+
+  if (perfil.rol !== "admin" && grupo.docente_id !== perfil.id) return vacia;
+
+  const supabase = await crearClienteSupabase();
+  const { data: inscripcion } = await supabase
+    .from("inscripciones")
+    .select("id")
+    .eq("grupo_id", grupo.id)
+    .eq("usuario_id", estudianteId)
+    .maybeSingle();
+  if (!inscripcion) return vacia;
+
+  const tamano = Math.min(Math.max(1, limite), 100);
+  const desde = Math.max(0, offset);
+
+  const { data, count } = await supabase
+    .from("intentos")
+    .select(
+      "id, usuario_id, reto_id, acierto, error_detectado, resultado, fecha, reto:retos(id, enunciado, leccion:lecciones(modulo_id, titulo, modulo:modulos(titulo, orden)))",
+      { count: "exact" },
+    )
+    .eq("usuario_id", estudianteId)
+    .order("fecha", { ascending: false })
+    .range(desde, desde + tamano - 1);
+
+  const filas: IntentoResumen[] = (data ?? []).map((intento) => {
+    const reto = primero(intento.reto);
+    const leccion = reto ? primero(reto.leccion) : null;
+    const modulo = leccion ? primero(leccion.modulo) : null;
+
+    return {
+      id: intento.id,
+      usuario_id: intento.usuario_id,
+      reto_id: intento.reto_id,
+      reto_titulo: reto?.enunciado ?? "Reto",
+      modulo_id: leccion?.modulo_id ?? null,
+      modulo_titulo: modulo?.titulo ?? "Sin módulo",
+      acierto: intento.acierto,
+      error_detectado: intento.error_detectado,
+      resultado: intento.resultado,
+      fecha: intento.fecha,
+    };
+  });
+
+  return { filas, total: count ?? 0, limite: tamano, offset: desde };
 }
 
 function agruparErrores(

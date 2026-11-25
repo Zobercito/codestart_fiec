@@ -20,10 +20,12 @@ export type DatosRetoConceptual = {
     enunciado_detalle: string | null;
     opciones: Opcion[];
     pistas: Pista[];
+    totalPistas: number;
     puntos: number;
     intentos_maximos: number;
   };
   intentosHechos: number;
+  pistasUsadas: number;
   leccion: { titulo: string; orden: number; moduloTitulo: string; moduloOrden: number };
   modoClase?: boolean;
 };
@@ -33,10 +35,12 @@ export function PantallaRetoConceptual({
 }: {
   datos: DatosRetoConceptual;
 }) {
-  const { reto, intentosHechos, leccion, modoClase = false } = datos;
+  const { reto, intentosHechos, leccion, modoClase = false, pistasUsadas: pistasIniciales } = datos;
 
   const [elegida, setElegida] = useState<string | null>(null);
-  const [pistasUsadas, setPistasUsadas] = useState(0);
+  const [pistasUsadas, setPistasUsadas] = useState(pistasIniciales);
+  const [pistas, setPistas] = useState<Pista[]>(reto.pistas);
+  const [errorPista, setErrorPista] = useState<string | null>(null);
   const [respuesta, setRespuesta] = useState<{
     acierto?: boolean;
     puntos?: number;
@@ -45,17 +49,30 @@ export function PantallaRetoConceptual({
   const [enviando, setEnviando] = useState(false);
 
   const revelarPista = useCallback(async () => {
+    if (pistasUsadas >= reto.totalPistas) return;
+    setErrorPista(null);
     // L2: el contador lo incrementa el servidor, no el cliente.
     try {
       const r = await fetch(`/api/retos/${reto.id}/pista`, { method: "POST" });
       const datosPista = await r.json();
+      if (!r.ok) {
+        setErrorPista(datosPista.error ?? "No se pudo revelar la pista.");
+        return;
+      }
       if (typeof datosPista.pistasUsadas === "number") {
         setPistasUsadas(datosPista.pistasUsadas);
       }
+      if (datosPista.pista) {
+        setPistas((actuales) =>
+          actuales.some((pista) => pista.nivel === datosPista.pista.nivel)
+            ? actuales
+            : [...actuales, datosPista.pista],
+        );
+      }
     } catch {
-      // Sin conexión: no se revela la pista.
+      setErrorPista("No se pudo conectar con el servidor.");
     }
-  }, [reto.id]);
+  }, [reto.id, reto.totalPistas, pistasUsadas]);
 
   async function enviar() {
     if (!elegida) return;
@@ -74,7 +91,7 @@ export function PantallaRetoConceptual({
     }
   }
 
-  const pistasReveladas = reto.pistas.slice(0, pistasUsadas);
+  const pistasReveladas = pistas;
 
   return (
     <main className="mx-auto w-full max-w-[760px] flex-1 px-4 py-8 sm:px-6">
@@ -143,7 +160,7 @@ export function PantallaRetoConceptual({
               <p className="mt-1">{pista.texto}</p>
             </div>
           ))}
-          {pistasUsadas < reto.pistas.length ? (
+          {pistasUsadas < reto.totalPistas ? (
             <button
               type="button"
               onClick={revelarPista}
@@ -152,6 +169,11 @@ export function PantallaRetoConceptual({
               🔒 Pista {pistasUsadas + 1} · Revelar{" "}
               <span className="font-normal text-slate-600">−10 pts</span>
             </button>
+          ) : null}
+          {errorPista ? (
+            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-[11.5px] font-medium text-red-700 ring-1 ring-red-200">
+              {errorPista}
+            </p>
           ) : null}
         </div>
       ) : null}

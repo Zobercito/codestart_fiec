@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { crearClienteSupabase } from "@/lib/supabase/server";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { obtenerMiPerfil, obtenerRutaDeModulos } from "@/lib/auth/dal";
@@ -15,11 +16,51 @@ import {
 } from "@/lib/retos/autocompletado";
 import { calcularEvaluacion } from "@/lib/evaluacion/calcular";
 import type { ReglasEvaluacion } from "@/lib/evaluacion/tipos";
+import {
+  resultadoAutocompletadoParaGuardar,
+  resultadoCodigoParaGuardar,
+  resultadoEvaluacionParaGuardar,
+  resultadoOrdenamientoParaGuardar,
+  resultadoSeleccionParaGuardar,
+} from "@/lib/retos/resultado";
+import { consumirLimite } from "@/lib/api/limite";
 
 /** L8: límites de la verificación (RNF07). */
 const LIMITE_PETICION = 64 * 1024; // 64 KB de cuerpo
 const LIMITE_CODIGO = 20_000; // 20 KB de código
 const TIEMPO_MAXIMO_MS = 5_000;
+
+const esquemaCuerpo = z
+  .object({
+    codigo: z.string().max(LIMITE_CODIGO).optional(),
+    eleccion: z.string().max(100).optional(),
+    orden: z.array(z.string().max(100)).max(100).optional(),
+    respuestas: z.record(z.string(), z.string().max(200)).optional(),
+  })
+  .strict()
+  .refine(
+    (datos) =>
+      datos.codigo !== undefined ||
+      datos.eleccion !== undefined ||
+      datos.orden !== undefined ||
+      datos.respuestas !== undefined,
+    { message: "Falta la respuesta del reto." },
+  );
+
+/** Evita que una expresión con miles de paréntesis reviente la pila. */
+function profundidadMaxima(codigo: string): number {
+  let profundidad = 0;
+  let maxima = 0;
+  for (const caracter of codigo) {
+    if (caracter === "(" || caracter === "{" || caracter === "[") {
+      profundidad += 1;
+      if (profundidad > maxima) maxima = profundidad;
+    } else if (caracter === ")" || caracter === "}" || caracter === "]") {
+      profundidad = Math.max(0, profundidad - 1);
+    }
+  }
+  return maxima;
+}
 
 /**
  * Verificacion de un reto de codigo.
@@ -65,6 +106,13 @@ export async function POST(
     );
   }
 
+  if (!consumirLimite(`verificar:${user.id}`, 30, 60_000)) {
+    return NextResponse.json(
+      { error: "Demasiadas entregas seguidas. Espera un minuto." },
+      { status: 429 },
+    );
+  }
+
   const { data: reto } = await admin
     .from("retos")
     .select("id, leccion_id, tipo, enunciado, reglas, casos, pistas, puntos, intentos_maximos")
@@ -104,14 +152,10 @@ export async function POST(
     }
   }
 
-  let cuerpo: {
-    codigo?: string;
-    eleccion?: string;
-    orden?: string[];
-    respuestas?: Record<string, string>;
-  };
+  let cuerpo: z.infer<typeof esquemaCuerpo>;
   try {
-    // L8: límite de tamaño antes de parsear (RNF07).
+    // L8: límite de tamaño antes de parsear (RNF07). `content-length`
+    // puede faltar (chunked), así que también se mide el texto leído.
     const longitud = Number(peticion.headers.get("content-length") ?? 0);
     if (longitud > LIMITE_PETICION) {
       return NextResponse.json(
@@ -119,7 +163,14 @@ export async function POST(
         { status: 413 },
       );
     }
-    cuerpo = await peticion.json();
+    const texto = await peticion.text();
+    if (texto.length > LIMITE_PETICION) {
+      return NextResponse.json(
+        { error: "La entrega es demasiado grande." },
+        { status: 413 },
+      );
+    }
+    cuerpo = esquemaCuerpo.parse(JSON.parse(texto));
   } catch {
     return NextResponse.json({ error: "Peticion invalida." }, { status: 400 });
   }
@@ -176,11 +227,11 @@ export async function POST(
         ? Math.max(0, reto.puntos - pistasUsadas * 10)
         : 0;
 
-    await admin.from("intentos").insert({
+    const { error: errorIntento } = await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: JSON.stringify({ respuestas }),
-      resultado,
+      resultado: resultadoEvaluacionParaGuardar(resultado),
       error_detectado: resultado.aprobado
         ? null
         : resultado.areasAReforzar.length > 0
@@ -189,6 +240,13 @@ export async function POST(
       acierto: resultado.aprobado,
       puntos_obtenidos: puntos,
     });
+
+    if (errorIntento) {
+      return NextResponse.json(
+        { error: "No se pudo registrar el intento." },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       evaluacion: resultado,
@@ -219,15 +277,22 @@ export async function POST(
       ? null
       : "Esa no es la respuesta correcta. Vuelve a leer la leccion: fíjate en qué se guarda de verdad una variable.";
 
-    await admin.from("intentos").insert({
+    const { error: errorIntento } = await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: elegida,
-      resultado: { elegida, correctas },
+      resultado: resultadoSeleccionParaGuardar(elegida),
       error_detectado: mensaje,
       acierto,
       puntos_obtenidos: puntos,
     });
+
+    if (errorIntento) {
+      return NextResponse.json(
+        { error: "No se pudo registrar el intento." },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       acierto,
@@ -250,15 +315,22 @@ export async function POST(
         ? Math.max(0, reto.puntos - pistasUsadas * 10)
         : 0;
 
-    await admin.from("intentos").insert({
+    const { error: errorIntento } = await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: JSON.stringify({ orden }),
-      resultado,
+      resultado: resultadoOrdenamientoParaGuardar(resultado),
       error_detectado: resultado.mensaje,
       acierto: resultado.acierto,
       puntos_obtenidos: puntos,
     });
+
+    if (errorIntento) {
+      return NextResponse.json(
+        { error: "No se pudo registrar el intento." },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       resultado,
@@ -282,15 +354,22 @@ export async function POST(
         ? Math.max(0, reto.puntos - pistasUsadas * 10)
         : 0;
 
-    await admin.from("intentos").insert({
+    const { error: errorIntento } = await admin.from("intentos").insert({
       usuario_id: user.id,
       reto_id: id,
       respuesta: JSON.stringify({ respuestas }),
-      resultado,
+      resultado: resultadoAutocompletadoParaGuardar(resultado),
       error_detectado: resultado.mensaje,
       acierto: resultado.acierto,
       puntos_obtenidos: puntos,
     });
+
+    if (errorIntento) {
+      return NextResponse.json(
+        { error: "No se pudo registrar el intento." },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       resultado,
@@ -312,6 +391,13 @@ export async function POST(
   }
 
   const codigo = String(cuerpo.codigo ?? "");
+
+  if (profundidadMaxima(codigo) > 120) {
+    return NextResponse.json(
+      { error: "El programa está demasiado anidado. Simplifica las expresiones." },
+      { status: 422 },
+    );
+  }
 
   // L8: el código también tiene su propio límite.
   if (codigo.length > LIMITE_CODIGO) {
@@ -346,23 +432,22 @@ export async function POST(
   const puntos =
     acierto && puntuable ? Math.max(0, reto.puntos - pistasUsadas * 10) : 0;
 
-  await admin.from("intentos").insert({
+  const { error: errorIntento } = await admin.from("intentos").insert({
     usuario_id: user.id,
     reto_id: id,
     codigo_enviado: codigo,
-    resultado: {
-      casos: resultado.casos.map((c) => ({
-        nombre: c.nombre,
-        coincide: c.coincide,
-        esperado: c.salida_esperada,
-        obtenido: c.salida_obtenida,
-      })),
-      errores: resultado.errores,
-    },
+    resultado: resultadoCodigoParaGuardar(resultado),
     error_detectado: errorDetectado,
     acierto,
     puntos_obtenidos: puntos,
   });
+
+  if (errorIntento) {
+    return NextResponse.json(
+      { error: "No se pudo registrar el intento." },
+      { status: 500 },
+    );
+  }
 
   return NextResponse.json({
     resultado,

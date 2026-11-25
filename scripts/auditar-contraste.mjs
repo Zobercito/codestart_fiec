@@ -22,6 +22,7 @@
 
 import { existsSync } from "node:fs";
 import { chromium } from "playwright";
+import { idRetoPorEnunciado } from "./ayudas-datos.mjs";
 
 // L9: la contraseña demo no vive en el repositorio.
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
@@ -30,14 +31,17 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const CORREO = process.env.AUDITORIA_CORREO ?? "francisco.gonzalez@up.ac.pa";
 const CLAVE = process.env.AUDITORIA_CLAVE ?? process.env.DEMO_PASSWORD ?? "";
 
+const RETO_CODIGO = await idRetoPorEnunciado("Clasifica la edad");
+const RETO_CONCEPTUAL = await idRetoPorEnunciado("¿Qué es una variable?");
+
 const RUTAS = [
   "/dashboard",
   "/modulos",
   "/modulos/1",
   "/modulos/3",
   "/modulos/3/lecciones/1",
-  "/retos/a3c0bec8-453b-4b1d-bcc3-92445276e359",
-  "/retos/cb534a18-b206-4da7-8128-9533ee7631d3",
+  `/retos/${RETO_CODIGO}`,
+  `/retos/${RETO_CONCEPTUAL}`,
 ];
 
 const INSTRUMENTO = () => {
